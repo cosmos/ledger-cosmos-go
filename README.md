@@ -20,9 +20,3 @@ dep ensure
 ```
 go build ledger.go
 ```
-
-# Running
-./ledger
-
-Make sure that the app is launched in the Ledger before starting this command and Ledger is connected to the USB port.
-This command line tool will try to send a simple json transaction and will return a signature when user agrees to sign.
