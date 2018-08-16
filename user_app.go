@@ -24,27 +24,27 @@ import (
 )
 
 const (
-	CLA        = 0x55
+	userCLA = 0x55
 
-	INSGetVersion         = 0
-	INSPublicKeySECP256K1 = 1
-	INSPublicKeyED25519   = 2
+	userINSGetVersion         = 0
+	userINSPublicKeySECP256K1 = 1
+	userINSPublicKeyED25519   = 2
 
 	// Sign sdk.Msg (transaction part of the message)
-	INSSignSECP256K1 = 3
-	INSSignED25519   = 4
+	userINSSignSECP256K1 = 3
+	userINSSignED25519   = 4
 
 	// Sign sdk.StdSignMsg (full message)
-	INSSignSECP256K1_StdSignMsg = 5
-	INSSignED25519_StdSignMsg   = 6
+	userINSSignSECP256K1_StdSignMsg = 5
+	userINSSignED25519_StdSignMsg   = 6
 
-	INSHash                   = 100
-	INSPublicKeySECP256K1Test = 101
-	INSPublicKeyED25519Test   = 102
-	INSSignSECP256K1Test      = 103
-	INSSignED25519Test        = 104
+	userINSHash                   = 100
+	userINSPublicKeySECP256K1Test = 101
+	userINSPublicKeyED25519Test   = 102
+	userINSSignSECP256K1Test      = 103
+	userINSSignED25519Test        = 104
 
-	MessageChunkSize = 250
+	userMessageChunkSize = 250
 )
 
 // User app
@@ -52,29 +52,10 @@ type LedgerCosmos struct {
 	api *ledger_go.Ledger
 }
 
-// Validator app
-type LedgerCosmosValidator struct {
-	// Add support for this app
-	api *ledger_go.Ledger
-}
-
-type VersionInfo struct {
-	AppId uint8
-	Major uint8
-	Minor uint8
-	Patch uint8
-}
-
 func FindLedgerCosmos() (*LedgerCosmos, error) {
 	ledgerApi, err := ledger_go.FindLedger()
 	// TODO: Check version number here
 	return &LedgerCosmos{ledgerApi}, err
-}
-
-func FindLedgerCosmosValidator() (*LedgerCosmosValidator, error) {
-	ledgerApi, err := ledger_go.FindLedger()
-	// TODO: Check version number here
-	return &LedgerCosmosValidator{ledgerApi}, err
 }
 
 func getBip32bytes(bip32Path []uint32) ([]byte, error) {
@@ -96,7 +77,7 @@ func getBip32bytes(bip32Path []uint32) ([]byte, error) {
 }
 
 func (ledger *LedgerCosmos) GetVersion() (*VersionInfo, error) {
-	message := []byte{CLA, INSGetVersion, 0, 0, 0}
+	message := []byte{userCLA, userINSGetVersion, 0, 0, 0}
 	response, err := ledger.api.Exchange(message)
 
 	if err != nil {
@@ -117,26 +98,26 @@ func (ledger *LedgerCosmos) GetVersion() (*VersionInfo, error) {
 
 func (ledger *LedgerCosmos) sign(instruction byte, bip32_path []uint32, transaction []byte) ([]byte, error) {
 	var packetIndex byte = 1
-	var packetCount byte = 1 + byte(math.Ceil(float64(len(transaction))/float64(MessageChunkSize)))
+	var packetCount byte = 1 + byte(math.Ceil(float64(len(transaction))/float64(userMessageChunkSize)))
 
 	var finalResponse []byte
 
 	var message []byte
 
 	for packetIndex <= packetCount {
-		chunk := MessageChunkSize
+		chunk := userMessageChunkSize
 		if packetIndex == 1 {
 			pathBytes, err := getBip32bytes(bip32_path)
 			if err != nil {
 				return nil, err
 			}
-			header := []byte{CLA, instruction, packetIndex, packetCount, byte(len(pathBytes))}
+			header := []byte{userCLA, instruction, packetIndex, packetCount, byte(len(pathBytes))}
 			message = append(header, pathBytes...)
 		} else {
-			if len(transaction) < MessageChunkSize {
+			if len(transaction) < userMessageChunkSize {
 				chunk = len(transaction)
 			}
-			header := []byte{CLA, instruction, packetIndex, packetCount, byte(chunk)}
+			header := []byte{userCLA, instruction, packetIndex, packetCount, byte(chunk)}
 			message = append(header, transaction[:chunk]...)
 		}
 
@@ -156,19 +137,19 @@ func (ledger *LedgerCosmos) sign(instruction byte, bip32_path []uint32, transact
 }
 
 func (ledger *LedgerCosmos) SignSECP256K1(bip32_path []uint32, transaction []byte) ([]byte, error) {
-	return ledger.sign(INSSignSECP256K1, bip32_path, transaction)
+	return ledger.sign(userINSSignSECP256K1, bip32_path, transaction)
 }
 
 func (ledger *LedgerCosmos) SignED25519(bip32_path []uint32, transaction []byte) ([]byte, error) {
-	return ledger.sign(INSSignED25519, bip32_path, transaction)
+	return ledger.sign(userINSSignED25519, bip32_path, transaction)
 }
 
 func (ledger *LedgerCosmos) SignSECP256K1_StdSignMsg(bip32_path []uint32, transaction []byte) ([]byte, error) {
-	return ledger.sign(INSSignSECP256K1_StdSignMsg, bip32_path, transaction)
+	return ledger.sign(userINSSignSECP256K1_StdSignMsg, bip32_path, transaction)
 }
 
 func (ledger *LedgerCosmos) SignED25519_StdSignMsg(bip32_path []uint32, transaction []byte) ([]byte, error) {
-	return ledger.sign(INSSignED25519_StdSignMsg, bip32_path, transaction)
+	return ledger.sign(userINSSignED25519_StdSignMsg, bip32_path, transaction)
 }
 
 func (ledger *LedgerCosmos) GetPublicKeySECP256K1(bip32_path []uint32) ([]byte, error) {
@@ -176,7 +157,7 @@ func (ledger *LedgerCosmos) GetPublicKeySECP256K1(bip32_path []uint32) ([]byte, 
 	if err != nil {
 		return nil, err
 	}
-	header := []byte{CLA, INSPublicKeySECP256K1, 0, 0, byte(len(pathBytes))}
+	header := []byte{userCLA, userINSPublicKeySECP256K1, 0, 0, byte(len(pathBytes))}
 	message := append(header, pathBytes...)
 
 	response, err := ledger.api.Exchange(message)
@@ -198,7 +179,7 @@ func (ledger *LedgerCosmos) GetPublicKeyED25519(bip32_path []uint32) ([]byte, er
 		return nil, err
 	}
 
-	header := []byte{CLA, INSPublicKeyED25519, 0, 0, byte(len(pathBytes))}
+	header := []byte{userCLA, userINSPublicKeyED25519, 0, 0, byte(len(pathBytes))}
 	message := append(header, pathBytes...)
 
 	response, err := ledger.api.Exchange(message)
@@ -217,16 +198,16 @@ func (ledger *LedgerCosmos) GetPublicKeyED25519(bip32_path []uint32) ([]byte, er
 func (ledger *LedgerCosmos) Hash(transaction []byte) ([]byte, error) {
 
 	var packetIndex = byte(1)
-	var packetCount = byte(math.Ceil(float64(len(transaction)) / float64(MessageChunkSize)))
+	var packetCount = byte(math.Ceil(float64(len(transaction)) / float64(userMessageChunkSize)))
 
 	var finalResponse []byte
 	for packetIndex <= packetCount {
-		chunk := MessageChunkSize
-		if len(transaction) < MessageChunkSize {
+		chunk := userMessageChunkSize
+		if len(transaction) < userMessageChunkSize {
 			chunk = len(transaction)
 		}
 
-		header := []byte{CLA, INSHash, packetIndex, packetCount, byte(chunk)}
+		header := []byte{userCLA, userINSHash, packetIndex, packetCount, byte(chunk)}
 		message := append(header, transaction[:chunk]...)
 		response, err := ledger.api.Exchange(message)
 
@@ -241,7 +222,7 @@ func (ledger *LedgerCosmos) Hash(transaction []byte) ([]byte, error) {
 }
 
 func (ledger *LedgerCosmos) TestGetPublicKeySECP256K1() ([]byte, error) {
-	message := []byte{CLA, INSPublicKeySECP256K1Test, 0, 0, 0}
+	message := []byte{userCLA, userINSPublicKeySECP256K1Test, 0, 0, 0}
 	response, err := ledger.api.Exchange(message)
 
 	if err != nil {
@@ -256,7 +237,7 @@ func (ledger *LedgerCosmos) TestGetPublicKeySECP256K1() ([]byte, error) {
 }
 
 func (ledger *LedgerCosmos) TestGetPublicKeyED25519() ([]byte, error) {
-	message := []byte{CLA, INSPublicKeyED25519Test, 0, 0, 0}
+	message := []byte{userCLA, userINSPublicKeyED25519Test, 0, 0, 0}
 	response, err := ledger.api.Exchange(message)
 
 	if err != nil {
@@ -272,18 +253,18 @@ func (ledger *LedgerCosmos) TestGetPublicKeyED25519() ([]byte, error) {
 
 func (ledger *LedgerCosmos) TestSignSECP256K1(transaction []byte) ([]byte, error) {
 	var packetIndex byte = 1
-	var packetCount byte = byte(math.Ceil(float64(len(transaction)) / float64(MessageChunkSize)))
+	var packetCount byte = byte(math.Ceil(float64(len(transaction)) / float64(userMessageChunkSize)))
 
 	var finalResponse []byte
 
 	for packetIndex <= packetCount {
 
-		chunk := MessageChunkSize
-		if len(transaction) < MessageChunkSize {
+		chunk := userMessageChunkSize
+		if len(transaction) < userMessageChunkSize {
 			chunk = len(transaction)
 		}
 
-		header := []byte{CLA, INSSignSECP256K1Test, packetIndex, packetCount, byte(chunk)}
+		header := []byte{userCLA, userINSSignSECP256K1Test, packetIndex, packetCount, byte(chunk)}
 		message := append(header, transaction[:chunk]...)
 
 		response, err := ledger.api.Exchange(message)
@@ -301,16 +282,16 @@ func (ledger *LedgerCosmos) TestSignSECP256K1(transaction []byte) ([]byte, error
 
 func (ledger *LedgerCosmos) TestSignED25519(transaction []byte) ([]byte, error) {
 	var packetIndex byte = 1
-	var packetCount byte = byte(math.Ceil(float64(len(transaction)) / float64(MessageChunkSize)))
+	var packetCount byte = byte(math.Ceil(float64(len(transaction)) / float64(userMessageChunkSize)))
 
 	var finalResponse []byte
 
 	for packetIndex <= packetCount {
-		chunk := MessageChunkSize
-		if len(transaction) < MessageChunkSize {
+		chunk := userMessageChunkSize
+		if len(transaction) < userMessageChunkSize {
 			chunk = len(transaction)
 		}
-		header := []byte{CLA, INSSignED25519Test, packetIndex, packetCount, byte(chunk)}
+		header := []byte{userCLA, userINSSignED25519Test, packetIndex, packetCount, byte(chunk)}
 		message := append(header, transaction[:chunk]...)
 
 		response, err := ledger.api.Exchange(message)
