@@ -19,7 +19,6 @@ package ledger_cosmos_go
 import (
 	"github.com/ZondaX/ledger-go"
 	"fmt"
-	"encoding/binary"
 	"math"
 )
 
@@ -58,24 +57,6 @@ func FindLedgerCosmos() (*LedgerCosmos, error) {
 	return &LedgerCosmos{ledgerApi}, err
 }
 
-func getBip32bytes(bip32Path []uint32) ([]byte, error) {
-	message := make([]byte, 41)
-	if len(bip32Path) > 10 {
-		return nil, fmt.Errorf("maximum bip32 depth = 10")
-	}
-	message[0] = byte(len(bip32Path))
-	for index, element := range bip32Path {
-		pos := 1 + index*4
-		value := element
-		// Harden 0, 1, 2
-		if index <= 2 {
-			value = 0x80000000 | element
-		}
-		binary.LittleEndian.PutUint32(message[pos:], value)
-	}
-	return message, nil
-}
-
 func (ledger *LedgerCosmos) GetVersion() (*VersionInfo, error) {
 	message := []byte{userCLA, userINSGetVersion, 0, 0, 0}
 	response, err := ledger.api.Exchange(message)
@@ -107,7 +88,7 @@ func (ledger *LedgerCosmos) sign(instruction byte, bip32_path []uint32, transact
 	for packetIndex <= packetCount {
 		chunk := userMessageChunkSize
 		if packetIndex == 1 {
-			pathBytes, err := getBip32bytes(bip32_path)
+			pathBytes, err := getBip32bytes(bip32_path, 3)
 			if err != nil {
 				return nil, err
 			}
@@ -153,7 +134,7 @@ func (ledger *LedgerCosmos) SignED25519_StdSignMsg(bip32_path []uint32, transact
 }
 
 func (ledger *LedgerCosmos) GetPublicKeySECP256K1(bip32_path []uint32) ([]byte, error) {
-	pathBytes, err := getBip32bytes(bip32_path)
+	pathBytes, err := getBip32bytes(bip32_path, 3)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +155,7 @@ func (ledger *LedgerCosmos) GetPublicKeySECP256K1(bip32_path []uint32) ([]byte, 
 }
 
 func (ledger *LedgerCosmos) GetPublicKeyED25519(bip32_path []uint32) ([]byte, error) {
-	pathBytes, err := getBip32bytes(bip32_path)
+	pathBytes, err := getBip32bytes(bip32_path, 3)
 	if err != nil {
 		return nil, err
 	}

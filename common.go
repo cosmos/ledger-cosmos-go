@@ -16,9 +16,32 @@
 
 package ledger_cosmos_go
 
+import (
+	"fmt"
+	"encoding/binary"
+)
+
 type VersionInfo struct {
 	AppId uint8
 	Major uint8
 	Minor uint8
 	Patch uint8
+}
+
+func getBip32bytes(bip32Path []uint32, hardenCount int) ([]byte, error) {
+	message := make([]byte, 41)
+	if len(bip32Path) > 10 {
+		return nil, fmt.Errorf("maximum bip32 depth = 10")
+	}
+	message[0] = byte(len(bip32Path))
+	for index, element := range bip32Path {
+		pos := 1 + index*4
+		value := element
+		// Harden 0, 1, 2
+		if index <= hardenCount {
+			value = 0x80000000 | element
+		}
+		binary.LittleEndian.PutUint32(message[pos:], value)
+	}
+	return message, nil
 }

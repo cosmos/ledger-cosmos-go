@@ -65,7 +65,7 @@ func (ledger *LedgerCosmosValidator) GetVersion() (*VersionInfo, error) {
 }
 
 func (ledger *LedgerCosmosValidator) GetPublicKeyED25519(bip32_path []uint32) ([]byte, error) {
-	pathBytes, err := getBip32bytes(bip32_path)
+	pathBytes, err := getBip32bytes(bip32_path, 10)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (ledger *LedgerCosmosValidator) GetPublicKeyED25519(bip32_path []uint32) ([
 	}
 
 	if len(response) < 4 {
-		return nil, fmt.Errorf("invalid response")
+		return nil, fmt.Errorf("invalid response. Too short")
 	}
 
 	return response, nil
@@ -97,7 +97,7 @@ func (ledger *LedgerCosmosValidator) SignED25519(bip32_path []uint32, message []
 	for packetIndex <= packetCount {
 		chunk := userMessageChunkSize
 		if packetIndex == 1 {
-			pathBytes, err := getBip32bytes(bip32_path)
+			pathBytes, err := getBip32bytes(bip32_path, 10)
 			if err != nil {
 				return nil, err
 			}
