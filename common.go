@@ -22,10 +22,10 @@ import (
 )
 
 type VersionInfo struct {
-	AppId uint8
-	Major uint8
-	Minor uint8
-	Patch uint8
+	AppMode uint8
+	Major   uint8
+	Minor   uint8
+	Patch   uint8
 }
 
 func getBip32bytes(bip32Path []uint32, hardenCount int) ([]byte, error) {

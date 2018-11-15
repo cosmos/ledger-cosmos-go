@@ -17,31 +17,39 @@
 package ledger_cosmos_go
 
 import (
-	"testing"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"fmt"
+	"testing"
 )
 
-func Test_GetVersion(t *testing.T) {
-	validatorApp, _ := FindLedgerCosmosValidator()
+func Test_ValGetVersion(t *testing.T) {
+	validatorApp, err := FindLedgerCosmosValidatorApp()
+	if err != nil {
+		assert.Error(t, err)
+	}
+
 	validatorApp.api.Logging = true
 
 	version, err := validatorApp.GetVersion()
 	require.Nil(t, err, "Detected error")
-	assert.Equal(t, uint8(0xFF), version.AppId, "TESTING MODE NOT ENABLED")
+	assert.Equal(t, uint8(0xFF), version.AppMode, "TESTING MODE NOT ENABLED")
 	assert.Equal(t, uint8(0x0), version.Major, "Wrong Major version")
 	assert.Equal(t, uint8(0x0), version.Minor, "Wrong Minor version")
 	assert.Equal(t, uint8(0x1), version.Patch, "Wrong Patch version")
 }
 
-func Test_GetPublicKey(t *testing.T) {
-	validatorApp, _ := FindLedgerCosmosValidator()
+func Test_ValGetPublicKey(t *testing.T) {
+	validatorApp, err := FindLedgerCosmosValidatorApp()
+	if err != nil {
+		assert.Error(t, err)
+	}
+
 	validatorApp.api.Logging = true
 
-	path := []uint32{44, 60, 0, 0, 0}
+	path := []uint32{44, 118, 0, 0, 0}
 
-	for i:=1; i<100; i++ {
+	for i := 1; i < 10; i++ {
 		pubKey, err := validatorApp.GetPublicKeyED25519(path)
 		require.Nil(t, err, "Detected error, err: %s\n", err)
 
@@ -49,23 +57,27 @@ func Test_GetPublicKey(t *testing.T) {
 			t,
 			32,
 			len(pubKey),
-			"Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
+			"Public key has wrong length: %x, expected length: %x\n", pubKey, 32)
 	}
 
 }
 
-func Test_SignED25519(t *testing.T) {
-	validatorApp, _ := FindLedgerCosmosValidator()
+func Test_ValSignED25519(t *testing.T) {
+	validatorApp, err := FindLedgerCosmosValidatorApp()
+	if err != nil {
+		assert.Error(t, err)
+	}
+
 	validatorApp.api.Logging = true
 
-	path := []uint32{44, 60, 0, 0, 0}
+	path := []uint32{44, 118, 0, 0, 0}
 	message := []byte("{\"height\":0,\"other\":\"Some dummy data\",\"round\":0}")
-	_, err := validatorApp.SignED25519(path, message)
+	_, err = validatorApp.SignED25519(path, message)
 	if err != nil {
 		fmt.Printf("[Sign] Error: %s\n", err)
 	}
 
-	for i:=1; i<100; i++ {
+	for i := 1; i < 10; i++ {
 		fmt.Printf("\nSending next message: %d\n", i)
 
 		message = []byte(fmt.Sprintf("{\"height\":%d,\"other\":\"Some dummy data\",\"round\":0}", i))

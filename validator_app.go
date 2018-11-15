@@ -27,7 +27,7 @@ const (
 
 	validatorINSGetVersion       = 0
 	validatorINSPublicKeyED25519 = 1
-	validatorINSSignED25519      = 4
+	validatorINSSignED25519      = 2
 
 	validator_MessageChunkSize = 250
 )
@@ -38,7 +38,7 @@ type LedgerCosmosValidator struct {
 	api *ledger_go.Ledger
 }
 
-func FindLedgerCosmosValidator() (*LedgerCosmosValidator, error) {
+func FindLedgerCosmosValidatorApp() (*LedgerCosmosValidator, error) {
 	ledgerApi, err := ledger_go.FindLedger()
 	// TODO: Check version number here
 	return &LedgerCosmosValidator{ledgerApi}, err
@@ -57,10 +57,10 @@ func (ledger *LedgerCosmosValidator) GetVersion() (*VersionInfo, error) {
 	}
 
 	return &VersionInfo{
-		AppId: response[0],
-		Major: response[1],
-		Minor: response[2],
-		Patch: response[3],
+		AppMode: response[0],
+		Major:   response[1],
+		Minor:   response[2],
+		Patch:   response[3],
 	}, nil
 }
 
