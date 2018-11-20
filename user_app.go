@@ -34,6 +34,10 @@ const (
 	userINSSignSECP256K1Test      = 103
 
 	userMessageChunkSize = 250
+
+	RequiredVersionMajor = 1
+	RequiredVersionMinor = 0
+	RequiredVersionPatch = 0
 )
 
 // User app
@@ -44,7 +48,24 @@ type LedgerCosmos struct {
 func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 	ledgerApi, err := ledger_go.FindLedger()
 	// TODO: Check version number here
-	return &LedgerCosmos{ledgerApi}, err
+
+	if err != nil {
+		return nil, err
+	}
+
+	ledgerCosmosUserApp := LedgerCosmos{ledgerApi}
+
+	appVersion, err := ledgerCosmosUserApp.GetVersion()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if appVersion.Major < RequiredVersionMajor {
+		return nil, fmt.Errorf("Version not supported")
+	}
+
+	return &ledgerCosmosUserApp, err
 }
 
 func (ledger *LedgerCosmos) GetVersion() (*VersionInfo, error) {
