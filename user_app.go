@@ -47,7 +47,6 @@ type LedgerCosmos struct {
 
 func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 	ledgerApi, err := ledger_go.FindLedger()
-	// TODO: Check version number here
 
 	if err != nil {
 		return nil, err

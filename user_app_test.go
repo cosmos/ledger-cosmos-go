@@ -22,6 +22,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
+	secp256k1 "github.com/btcsuite/btcd/btcec"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 func Test_UserGetVersion(t *testing.T) {
@@ -52,19 +54,19 @@ func Test_UserGetPublicKey(t *testing.T) {
 
 	path := []uint32{44, 118, 0, 0, 0}
 
-	for i := 1; i < 10; i++ {
-		pubKey, err := userApp.GetPublicKeySECP256K1(path)
-		if err != nil {
-			assert.FailNow(t, "Detected error, err: %s\n", err.Error())
-		}
-
-		assert.Equal(
-			t,
-			65,
-			len(pubKey),
-			"Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
+	pubKey, err := userApp.GetPublicKeySECP256K1(path)
+	if err != nil {
+		assert.FailNow(t, "Detected error, err: %s\n", err.Error())
 	}
 
+	assert.Equal(
+		t,
+		65,
+		len(pubKey),
+		"Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
+
+	_, err = secp256k1.ParsePubKey(pubKey[:], secp256k1.S256())
+	require.Nil(t, err, "Error parsing public key err: %s\n", err)
 }
 
 func getDummyTx() []byte {
@@ -97,8 +99,37 @@ func Test_UserSign(t *testing.T) {
 	path := []uint32{44, 118, 0, 0, 0}
 
 	message := getDummyTx()
-	_, err = userApp.SignSECP256K1(path, message)
+	signature, err := userApp.SignSECP256K1(path, message)
 	if err != nil {
 		assert.FailNow(t,"[Sign] Error: %s\n", err.Error())
+	}
+
+	// Verify Signature
+	pubKey, err := userApp.GetPublicKeySECP256K1(path)
+	if err != nil {
+		assert.FailNow(t, "Detected error, err: %s\n", err.Error())
+	}
+
+	if err != nil {
+		assert.FailNow(t, "[GetPK] Error: " + err.Error())
+		return
+	}
+
+	pub__, err := secp256k1.ParsePubKey(pubKey[:], secp256k1.S256())
+	if err != nil {
+		assert.FailNow(t, "[ParsePK] Error: " + err.Error())
+		return
+	}
+
+	sig__, err := secp256k1.ParseDERSignature(signature[:], secp256k1.S256())
+	if err != nil {
+		assert.FailNow(t, "[ParseSig] Error: " + err.Error())
+		return
+	}
+
+	verified := sig__.Verify(crypto.Sha256(message), pub__)
+	if !verified {
+		assert.FailNow(t, "[VerifySig] Error verifying signature: " + err.Error())
+		return
 	}
 }

@@ -40,8 +40,24 @@ type LedgerCosmosValidator struct {
 
 func FindLedgerCosmosValidatorApp() (*LedgerCosmosValidator, error) {
 	ledgerApi, err := ledger_go.FindLedger()
-	// TODO: Check version number here
-	return &LedgerCosmosValidator{ledgerApi}, err
+
+	if err != nil {
+		return nil, err
+	}
+
+	ledgerCosmosValidatorApp := LedgerCosmosValidator{ledgerApi}
+
+	appVersion, err := ledgerCosmosValidatorApp.GetVersion()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if appVersion.Major < RequiredVersionMajor {
+		return nil, fmt.Errorf("Version not supported")
+	}
+
+	return &ledgerCosmosValidatorApp, err
 }
 
 func (ledger *LedgerCosmosValidator) GetVersion() (*VersionInfo, error) {
