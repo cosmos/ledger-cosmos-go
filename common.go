@@ -37,8 +37,7 @@ func getBip32bytes(bip32Path []uint32, hardenCount int) ([]byte, error) {
 	for index, element := range bip32Path {
 		pos := 1 + index*4
 		value := element
-		// Harden 0, 1, 2
-		if index <= hardenCount {
+		if index < hardenCount {
 			value = 0x80000000 | element
 		}
 		binary.LittleEndian.PutUint32(message[pos:], value)

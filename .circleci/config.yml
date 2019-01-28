@@ -3,12 +3,12 @@ jobs:
   build:
     docker:
       - image: golang:1.10
-    working_directory: /go/src/zondax/ledger-goclient
+    working_directory: /go/src/zondax/ledger-cosmos-go
     steps:
       - checkout
       - run: go get -v -u github.com/golang/dep/cmd/dep
       - run: dep ensure -v
-      - run: go build ledger.go apduWrapper.go
+      - run: go build *.go
       - run: go test
 workflows:
   version: 2

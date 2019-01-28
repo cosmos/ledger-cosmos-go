@@ -1,3 +1,5 @@
+// +build ledger_device
+
 /*******************************************************************************
 *   (c) 2018 ZondaX GmbH
 *
@@ -41,7 +43,7 @@ func Test_UserGetVersion(t *testing.T) {
 	assert.Equal(t, uint8(0x0), version.AppMode, "TESTING MODE ENABLED!!")
 	assert.Equal(t, uint8(0x1), version.Major, "Wrong Major version")
 	assert.Equal(t, uint8(0x0), version.Minor, "Wrong Minor version")
-	assert.Equal(t, uint8(0x0), version.Patch, "Wrong Patch version")
+	assert.Equal(t, uint8(0x1), version.Patch, "Wrong Patch version")
 }
 
 func Test_UserGetPublicKey(t *testing.T) {
@@ -65,9 +67,13 @@ func Test_UserGetPublicKey(t *testing.T) {
 		len(pubKey),
 		"Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
 
+	fmt.Printf("PUBLIC KEY: %x\n", pubKey)
+
 	_, err = secp256k1.ParsePubKey(pubKey[:], secp256k1.S256())
 	require.Nil(t, err, "Error parsing public key err: %s\n", err)
 }
+
+// Ledger Test Mnemonic: equip will roof matter pink blind book anxiety banner elbow sun young
 
 func getDummyTx() []byte {
 	dummyTx := `{
