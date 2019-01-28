@@ -20,18 +20,18 @@ package ledger_cosmos_go
 
 import (
 	"fmt"
+	secp256k1 "github.com/btcsuite/btcd/btcec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto"
 	"strings"
 	"testing"
-	secp256k1 "github.com/btcsuite/btcd/btcec"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 func Test_UserGetVersion(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
-		assert.Error(t, err)
+		t.Fatalf( err.Error())
 	}
 
 	userApp.api.Logging = true
@@ -49,7 +49,7 @@ func Test_UserGetVersion(t *testing.T) {
 func Test_UserGetPublicKey(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
-		assert.Error(t, err)
+		t.Fatalf( err.Error())
 	}
 
 	userApp.api.Logging = true
@@ -58,7 +58,7 @@ func Test_UserGetPublicKey(t *testing.T) {
 
 	pubKey, err := userApp.GetPublicKeySECP256K1(path)
 	if err != nil {
-		assert.FailNow(t, "Detected error, err: %s\n", err.Error())
+		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
 	assert.Equal(
@@ -107,35 +107,35 @@ func Test_UserSign(t *testing.T) {
 	message := getDummyTx()
 	signature, err := userApp.SignSECP256K1(path, message)
 	if err != nil {
-		assert.FailNow(t,"[Sign] Error: %s\n", err.Error())
+		t.Fatalf("[Sign] Error: %s\n", err.Error())
 	}
 
 	// Verify Signature
 	pubKey, err := userApp.GetPublicKeySECP256K1(path)
 	if err != nil {
-		assert.FailNow(t, "Detected error, err: %s\n", err.Error())
+		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
 	if err != nil {
-		assert.FailNow(t, "[GetPK] Error: " + err.Error())
+		t.Fatalf( "[GetPK] Error: " + err.Error())
 		return
 	}
 
 	pub__, err := secp256k1.ParsePubKey(pubKey[:], secp256k1.S256())
 	if err != nil {
-		assert.FailNow(t, "[ParsePK] Error: " + err.Error())
+		t.Fatalf( "[ParsePK] Error: " + err.Error())
 		return
 	}
 
 	sig__, err := secp256k1.ParseDERSignature(signature[:], secp256k1.S256())
 	if err != nil {
-		assert.FailNow(t, "[ParseSig] Error: " + err.Error())
+		t.Fatalf( "[ParseSig] Error: " + err.Error())
 		return
 	}
 
 	verified := sig__.Verify(crypto.Sha256(message), pub__)
 	if !verified {
-		assert.FailNow(t, "[VerifySig] Error verifying signature: " + err.Error())
+		t.Fatalf( "[VerifySig] Error verifying signature: " + err.Error())
 		return
 	}
 }
