@@ -28,7 +28,7 @@ import (
 func Test_ValGetVersion(t *testing.T) {
 	validatorApp, err := FindLedgerCosmosValidatorApp()
 	if err != nil {
-		assert.FailNow(t, err.Error())
+		t.Fatalf( err.Error())
 	}
 
 	validatorApp.api.Logging = true
@@ -44,7 +44,7 @@ func Test_ValGetVersion(t *testing.T) {
 func Test_ValGetPublicKey(t *testing.T) {
 	validatorApp, err := FindLedgerCosmosValidatorApp()
 	if err != nil {
-		assert.FailNow(t, err.Error())
+		t.Fatalf( err.Error())
 	}
 
 	validatorApp.api.Logging = true
@@ -67,7 +67,7 @@ func Test_ValGetPublicKey(t *testing.T) {
 func Test_ValSignED25519(t *testing.T) {
 	validatorApp, err := FindLedgerCosmosValidatorApp()
 	if err != nil {
-		assert.FailNow(t, err.Error())
+		t.Fatalf( err.Error())
 	}
 
 	validatorApp.api.Logging = true
