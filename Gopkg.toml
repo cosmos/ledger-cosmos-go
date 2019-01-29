@@ -1,10 +1,10 @@
 [[constraint]]
-  name = "github.com/ZondaX/ledger-go"
-  version = "v0.6.0"
+  name = "github.com/zondax/ledger-go"
+  version = "v0.7.0"
 
 [prune]
   go-tests = true
   unused-packages = true
   [[prune.project]]
-      name = "github.com/ZondaX/hid"
+      name = "github.com/zondax/hid"
       unused-packages = false

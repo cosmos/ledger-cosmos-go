@@ -18,7 +18,7 @@ package ledger_cosmos_go
 
 import (
 	"fmt"
-	"github.com/ZondaX/ledger-go"
+	"github.com/zondax/ledger-go"
 	"math"
 )
 
