@@ -28,6 +28,15 @@ import (
 	"testing"
 )
 
+func Test_UserFindLedger(t *testing.T) {
+	userApp, err := FindLedgerCosmosUserApp()
+	if err != nil {
+		t.Fatalf( err.Error())
+	}
+
+	assert.NotNil(t, userApp)
+}
+
 func Test_UserGetVersion(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {

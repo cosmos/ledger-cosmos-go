@@ -2,20 +2,28 @@
 
 
 [[projects]]
-  digest = "1:0e3c4434de19ab6378518212ae289f32a93b58fe3cbadef8d5e18c4430ade1a9"
+  digest = "1:b73f5e117bc7c6e8fc47128f20db48a873324ad5cfeeebfc505e85c58682b5e4"
+  name = "github.com/ZondaX/hid"
+  packages = ["."]
+  pruneopts = "T"
+  revision = "302fd402163c34626286195dfa9adac758334acc"
+  version = "v0.9.0"
+
+[[projects]]
+  digest = "1:312416a870d6ef9941e1ea7893480ff1e6627cc66517ce2760bf97af427d8f8c"
   name = "github.com/ZondaX/ledger-go"
   packages = ["."]
   pruneopts = "UT"
-  revision = "5271d68c0c1fa7718e5781fea56169bba82942f6"
-  version = "v0.5.0"
+  revision = "6c752dfd14666393766f120c0c3ae940b5aaa8d5"
+  version = "v0.6.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:c0decf632843204d2b8781de7b26e7038584e2dcccc7e2f401e88ae85b1df2b7"
+  digest = "1:093bf93a65962e8191e3e8cd8fc6c363f83d43caca9739c906531ba7210a9904"
   name = "github.com/btcsuite/btcd"
   packages = ["btcec"]
   pruneopts = "UT"
-  revision = "67e573d211ace594f1366b4ce9d39726c4b19bd0"
+  revision = "ed77733ec07dfc8a513741138419b8d9d3de9d2d"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -38,12 +46,12 @@
   version = "v0.6.0"
 
 [[projects]]
-  digest = "1:31a18dae27a29aa074515e43a443abfd2ba6deb6d69309d8d7ce789c45f34659"
+  digest = "1:4062bc6de62d73e2be342243cf138cf499b34d558876db8d9430e2149388a4d8"
   name = "github.com/go-logfmt/logfmt"
   packages = ["."]
   pruneopts = "UT"
-  revision = "390ab7935ee28ec6b286364bba9b4dd6410cb3d5"
-  version = "v0.3.0"
+  revision = "07c9b44f60d7ffdfb7d8efe1ad539965737836dc"
+  version = "v0.4.0"
 
 [[projects]]
   digest = "1:586ea76dbd0374d6fb649a91d70d652b7fe0ccffb8910a77468e7702e7901f3d"
@@ -75,14 +83,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:447562773a19dc1719359c2cd70d275c62c0b89f79d763f41d5deedb0e69873f"
-  name = "github.com/karalabe/hid"
-  packages = ["."]
-  pruneopts = "T"
-  revision = "d815e0c1a2e2082a287a2806bc90bc8fc7b276a9"
-
-[[projects]]
-  branch = "master"
   digest = "1:a64e323dc06b73892e5bb5d040ced475c4645d456038333883f58934abbf6f72"
   name = "github.com/kr/logfmt"
   packages = ["."]
@@ -90,12 +90,12 @@
   revision = "b84e30acd515aadc4b783ad4ff83aff3299bdfe0"
 
 [[projects]]
-  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
+  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
   name = "github.com/pkg/errors"
   packages = ["."]
   pruneopts = "UT"
-  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
-  version = "v0.8.0"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
 
 [[projects]]
   digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
@@ -106,18 +106,18 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:c40d65817cdd41fac9aa7af8bed56927bb2d6d47e4fea566a74880f5c2b1c41e"
+  digest = "1:5da8ce674952566deae4dbc23d07c85caafc6cfa815b0b3e03e41979cedb8750"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
     "require",
   ]
   pruneopts = "UT"
-  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
-  version = "v1.2.2"
+  revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
+  version = "v1.3.0"
 
 [[projects]]
-  digest = "1:19d11835d904acb49bf5f1144f7bcd5bb93f629360e6d110377ead3dbb4e2469"
+  digest = "1:2368474e3f263be379e783a0bdac7f5f825f844252d7e9d6efa8f27bb79ff2fb"
   name = "github.com/tendermint/tendermint"
   packages = [
     "crypto",
@@ -126,11 +126,11 @@
     "libs/log",
   ]
   pruneopts = "UT"
-  revision = "22dcc92232cd04ce7381043e09d85dd536ae3b96"
-  version = "v0.26.3"
+  revision = "4d7b29cd8f8ef998cf8f7141f3a100b0a4fa718d"
+  version = "v0.29.1"
 
 [[projects]]
-  digest = "1:446c58ba05d3c14faf33e87b81b2fdf68c235e1d89259860d3eae588c8005f9c"
+  digest = "1:578bbe25849cdc707dfa01cd316556198df9df317fc1608fd2bbbf8967af9785"
   name = "golang.org/x/crypto"
   packages = [
     "chacha20poly1305",
@@ -140,16 +140,15 @@
     "ripemd160",
   ]
   pruneopts = "UT"
-  revision = "3764759f34a542a3aef74d6b02e35be7ab893bba"
-  source = "github.com/tendermint/crypto"
+  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
 
 [[projects]]
   branch = "master"
-  digest = "1:8392490b249a3602a13813be12324d3b16eca044ae185ff32cdd9e267706e208"
+  digest = "1:d64643374306ef30390ca9ddebc920b87ff1d8044f14eea405a2f060131d20f4"
   name = "golang.org/x/sys"
   packages = ["cpu"]
   pruneopts = "UT"
-  revision = "ec83556a53fe16b65c452a104ea9d1e86a671852"
+  revision = "302c3dd5f1cc82baae8e44d9c3178e89b6e2b345"
 
 [solve-meta]
   analyzer-name = "dep"
