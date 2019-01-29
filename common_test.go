@@ -28,7 +28,7 @@ func Test_PathGeneration0(t *testing.T) {
 	pathBytes, err := getBip32bytes(bip32Path, 0)
 
 	if err != nil {
-		assert.FailNow(t, "Detected error, err: %s\n", err.Error())
+		t.Fatalf( "Detected error, err: %s\n", err.Error())
 	}
 
 	fmt.Printf("Path: %x\n", pathBytes)
@@ -52,7 +52,7 @@ func Test_PathGeneration2(t *testing.T) {
 	pathBytes, err := getBip32bytes(bip32Path, 2)
 
 	if err != nil {
-		assert.FailNow(t, "Detected error, err: %s\n", err.Error())
+		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
 	fmt.Printf("Path: %x\n", pathBytes)
@@ -76,7 +76,7 @@ func Test_PathGeneration3(t *testing.T) {
 	pathBytes, err := getBip32bytes(bip32Path, 3)
 
 	if err != nil {
-		assert.FailNow(t, "Detected error, err: %s\n", err.Error())
+		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
 	fmt.Printf("Path: %x\n", pathBytes)
