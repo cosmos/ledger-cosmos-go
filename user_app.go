@@ -67,6 +67,10 @@ func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 	return &ledgerCosmosUserApp, err
 }
 
+func (ledger *LedgerCosmos) Close() error {
+	return ledger.api.Close()
+}
+
 func (ledger *LedgerCosmos) GetVersion() (*VersionInfo, error) {
 	message := []byte{userCLA, userINSGetVersion, 0, 0, 0}
 	response, err := ledger.api.Exchange(message)
