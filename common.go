@@ -17,8 +17,8 @@
 package ledger_cosmos_go
 
 import (
-	"fmt"
 	"encoding/binary"
+	"fmt"
 )
 
 type VersionInfo struct {
