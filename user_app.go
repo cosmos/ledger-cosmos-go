@@ -18,8 +18,9 @@ package ledger_cosmos_go
 
 import (
 	"fmt"
-	"github.com/zondax/ledger-go"
 	"math"
+
+	"github.com/zondax/ledger-go"
 )
 
 const (
@@ -40,11 +41,12 @@ const (
 	RequiredVersionPatch = 0
 )
 
-// User app
+// LedgerCosmos represents a connection to the Cosmos app in a Ledger Nano S device
 type LedgerCosmos struct {
 	api *ledger_go.Ledger
 }
 
+// FindLedgerCosmosUserApp finds a Cosmos app running in a device
 func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 	ledgerApi, err := ledger_go.FindLedger()
 
@@ -61,7 +63,7 @@ func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 	}
 
 	if appVersion.Major < RequiredVersionMajor {
-		return nil, fmt.Errorf("Version not supported")
+		return nil, fmt.Errorf("version not supported")
 	}
 
 	return &ledgerCosmosUserApp, err
