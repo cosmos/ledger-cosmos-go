@@ -176,7 +176,7 @@ func getDummyTx() []byte {
 func Test_UserSign(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
-		assert.Error(t, err)
+		t.Fatalf(err.Error())
 	}
 	defer userApp.Close()
 

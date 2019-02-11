@@ -46,7 +46,7 @@ type LedgerCosmos struct {
 
 // RequiredCosmosUserAppVersion indicates the minimum required version of the Cosmos app
 func RequiredCosmosUserAppVersion() common.VersionInfo {
-	return common.VersionInfo{0, 1, 1, 0,}
+	return common.VersionInfo{Major: 1, Minor: 1,}
 }
 
 // FindLedgerCosmosUserApp finds a Cosmos user app running in a ledger device
