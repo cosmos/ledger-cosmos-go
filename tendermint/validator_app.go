@@ -61,12 +61,13 @@ func FindLedgerTendermintValidatorApp() (*LedgerTendermintValidator, error) {
 		if err.Error() == "[APDU_CODE_CLA_NOT_SUPPORTED] Class not supported" {
 			return nil, fmt.Errorf("are you sure the Tendermint Validator app is open?")
 		}
-
+		defer ledgerAPI.Close()
 		return nil, err
 	}
 
 	req := RequiredTendermintValidatorAppVersion()
 	if !common.CheckVersion(*appVersion, req) {
+		defer ledgerAPI.Close()
 		return nil, fmt.Errorf(
 			"version not supported. Required >v%d.%d.%d", req.Major, req.Minor, req.Patch)
 	}
@@ -102,7 +103,7 @@ func (ledger *LedgerTendermintValidator) GetVersion() (*common.VersionInfo, erro
 
 // GetPublicKeyED25519 retrieves the public key for the corresponding bip32 derivation path
 func (ledger *LedgerTendermintValidator) GetPublicKeyED25519(bip32Path []uint32) ([]byte, error) {
-	pathBytes, err := getBip32bytes(bip32Path, 10)
+	pathBytes, err := common.GetBip32bytes(bip32Path, 10)
 	if err != nil {
 		return nil, err
 	}

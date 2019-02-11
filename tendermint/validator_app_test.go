@@ -1,5 +1,3 @@
-// +build ledger_device
-
 /*******************************************************************************
 *   (c) 2018 ZondaX GmbH
 *
@@ -19,17 +17,17 @@
 package tendermint
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func Test_ValGetVersion(t *testing.T) {
-	validatorApp, err := FindLedgerCosmosValidatorApp()
+	validatorApp, err := FindLedgerTendermintValidatorApp()
 	if err != nil {
 		t.Fatalf( err.Error())
 	}
+	defer validatorApp.Close()
 
 	validatorApp.api.Logging = true
 
@@ -37,15 +35,16 @@ func Test_ValGetVersion(t *testing.T) {
 	require.Nil(t, err, "Detected error")
 	assert.Equal(t, uint8(0xFF), version.AppMode, "TESTING MODE NOT ENABLED")
 	assert.Equal(t, uint8(0x0), version.Major, "Wrong Major version")
-	assert.Equal(t, uint8(0x0), version.Minor, "Wrong Minor version")
-	assert.Equal(t, uint8(0x1), version.Patch, "Wrong Patch version")
+	assert.Equal(t, uint8(0x5), version.Minor, "Wrong Minor version")
+	assert.Equal(t, uint8(0x0), version.Patch, "Wrong Patch version")
 }
 
 func Test_ValGetPublicKey(t *testing.T) {
-	validatorApp, err := FindLedgerCosmosValidatorApp()
+	validatorApp, err := FindLedgerTendermintValidatorApp()
 	if err != nil {
 		t.Fatalf( err.Error())
 	}
+	defer validatorApp.Close()
 
 	validatorApp.api.Logging = true
 
@@ -65,27 +64,5 @@ func Test_ValGetPublicKey(t *testing.T) {
 }
 
 func Test_ValSignED25519(t *testing.T) {
-	validatorApp, err := FindLedgerCosmosValidatorApp()
-	if err != nil {
-		t.Fatalf( err.Error())
-	}
-
-	validatorApp.api.Logging = true
-
-	path := []uint32{44, 118, 0, 0, 0}
-	message := []byte("{\"height\":0,\"other\":\"Some dummy data\",\"round\":0}")
-	_, err = validatorApp.SignED25519(path, message)
-	if err != nil {
-		fmt.Printf("[Sign] Error: %s\n", err)
-	}
-
-	for i := 1; i < 10; i++ {
-		fmt.Printf("\nSending next message: %d\n", i)
-
-		message = []byte(fmt.Sprintf("{\"height\":%d,\"other\":\"Some dummy data\",\"round\":0}", i))
-		_, err = validatorApp.SignED25519(path, message)
-		if err != nil {
-			fmt.Printf("[Sign] Error: %s\n", err)
-		}
-	}
+	t.Skip("Go support is still not available. Please refer to the Rust library")
 }

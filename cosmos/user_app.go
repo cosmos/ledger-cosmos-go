@@ -62,15 +62,16 @@ func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 	appVersion, err := ledgerCosmosUserApp.GetVersion()
 
 	if err != nil {
+		defer ledgerAPI.Close()
 		if err.Error() == "[APDU_CODE_CLA_NOT_SUPPORTED] Class not supported" {
 			return nil, fmt.Errorf("are you sure the Cosmos app is open?")
 		}
-
 		return nil, err
 	}
 
 	req := RequiredCosmosUserAppVersion()
 	if !common.CheckVersion(*appVersion, req) {
+		defer ledgerAPI.Close()
 		return nil, fmt.Errorf(
 			"version not supported. Required >v%d.%d.%d", req.Major, req.Minor, req.Patch)
 	}
