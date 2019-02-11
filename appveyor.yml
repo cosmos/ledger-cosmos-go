@@ -22,5 +22,5 @@ install:
   - dep ensure -v
 
 build_script:
-  - go build -x
-  - go test
+  - go build -x ./common ./cosmos ./tendermint
+  - go test ./common
