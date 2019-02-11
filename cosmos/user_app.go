@@ -14,10 +14,11 @@
 *  limitations under the License.
 ********************************************************************************/
 
-package ledger_cosmos_go
+package cosmos
 
 import (
 	"fmt"
+	"github.com/zondax/ledger-cosmos-go/common"
 	"math"
 
 	"github.com/zondax/ledger-go"
@@ -36,10 +37,6 @@ const (
 	userINSSignSECP256K1Test      = 103
 
 	userMessageChunkSize = 250
-
-	RequiredVersionMajor = 1
-	RequiredVersionMinor = 1
-	RequiredVersionPatch = 0
 )
 
 // LedgerCosmos represents a connection to the Cosmos app in a Ledger Nano S device
@@ -47,27 +44,20 @@ type LedgerCosmos struct {
 	api *ledger_go.Ledger
 }
 
-func checkVersion(ver *VersionInfo) bool {
-	if ver.Major != RequiredVersionMajor {
-		return ver.Major > RequiredVersionMajor
-	}
-
-	if ver.Minor != RequiredVersionMinor {
-		return ver.Minor > RequiredVersionMinor
-	}
-
-	return ver.Patch >= RequiredVersionPatch
+// RequiredCosmosUserAppVersion indicates the minimum required version of the Cosmos app
+func RequiredCosmosUserAppVersion() common.VersionInfo {
+	return common.VersionInfo{0, 1, 1, 0,}
 }
 
-// FindLedgerCosmosUserApp finds a Cosmos app running in a device
+// FindLedgerCosmosUserApp finds a Cosmos user app running in a ledger device
 func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
-	ledgerApi, err := ledger_go.FindLedger()
+	ledgerAPI, err := ledger_go.FindLedger()
 
 	if err != nil {
 		return nil, err
 	}
 
-	ledgerCosmosUserApp := LedgerCosmos{ledgerApi}
+	ledgerCosmosUserApp := LedgerCosmos{ledgerAPI}
 
 	appVersion, err := ledgerCosmosUserApp.GetVersion()
 
@@ -79,22 +69,22 @@ func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 		return nil, err
 	}
 
-	if !checkVersion(appVersion) {
+	req := RequiredCosmosUserAppVersion()
+	if !common.CheckVersion(*appVersion, req) {
 		return nil, fmt.Errorf(
-			"version not supported. Required >v%d.%d.%d",
-			RequiredVersionMajor,
-			RequiredVersionMinor,
-			RequiredVersionPatch)
+			"version not supported. Required >v%d.%d.%d", req.Major, req.Minor, req.Patch)
 	}
 
 	return &ledgerCosmosUserApp, err
 }
 
+// Close closes a connection with the Cosmos user app
 func (ledger *LedgerCosmos) Close() error {
 	return ledger.api.Close()
 }
 
-func (ledger *LedgerCosmos) GetVersion() (*VersionInfo, error) {
+// GetVersion returns the current version of the Cosmos user app
+func (ledger *LedgerCosmos) GetVersion() (*common.VersionInfo, error) {
 	message := []byte{userCLA, userINSGetVersion, 0, 0, 0}
 	response, err := ledger.api.Exchange(message)
 
@@ -106,7 +96,7 @@ func (ledger *LedgerCosmos) GetVersion() (*VersionInfo, error) {
 		return nil, fmt.Errorf("invalid response")
 	}
 
-	return &VersionInfo{
+	return &common.VersionInfo{
 		AppMode: response[0],
 		Major:   response[1],
 		Minor:   response[2],
@@ -114,12 +104,14 @@ func (ledger *LedgerCosmos) GetVersion() (*VersionInfo, error) {
 	}, nil
 }
 
-func (ledger *LedgerCosmos) SignSECP256K1(bip32_path []uint32, transaction []byte) ([]byte, error) {
-	return ledger.sign(userINSSignSECP256K1, bip32_path, transaction)
+// SignSECP256K1 signs a transaction using Cosmos user app
+func (ledger *LedgerCosmos) SignSECP256K1(bip32Path []uint32, transaction []byte) ([]byte, error) {
+	return ledger.sign(userINSSignSECP256K1, bip32Path, transaction)
 }
 
-func (ledger *LedgerCosmos) GetPublicKeySECP256K1(bip32_path []uint32) ([]byte, error) {
-	pathBytes, err := getBip32bytes(bip32_path, 3)
+// GetPublicKeySECP256K1 retrieves the public key for the corresponding bip32 derivation path
+func (ledger *LedgerCosmos) GetPublicKeySECP256K1(bip32Path []uint32) ([]byte, error) {
+	pathBytes, err := common.GetBip32bytes(bip32Path, 3)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +136,8 @@ func validHRPByte(b byte) bool {
 	return b >= 33 && b <= 126
 }
 
-func (ledger *LedgerCosmos) ShowPublicKeySECP256K1(hrp string, bip32_path []uint32) error {
+// ShowAddressSECP256K1 shows the address for the corresponding bip32 derivation path
+func (ledger *LedgerCosmos) ShowAddressSECP256K1(hrp string, bip32Path []uint32) error {
 	if len(hrp) > 83 {
 		return fmt.Errorf("hrp len should be <10")
 	}
@@ -156,7 +149,7 @@ func (ledger *LedgerCosmos) ShowPublicKeySECP256K1(hrp string, bip32_path []uint
 		}
 	}
 
-	pathBytes, err := getBip32bytes(bip32_path, 3)
+	pathBytes, err := common.GetBip32bytes(bip32Path, 3)
 	if err != nil {
 		return err
 	}
@@ -173,6 +166,7 @@ func (ledger *LedgerCosmos) ShowPublicKeySECP256K1(hrp string, bip32_path []uint
 	return err
 }
 
+// Hash returns the hash for the transaction (only enabled in test mode apps)
 func (ledger *LedgerCosmos) Hash(transaction []byte) ([]byte, error) {
 
 	var packetIndex = byte(1)
@@ -199,6 +193,7 @@ func (ledger *LedgerCosmos) Hash(transaction []byte) ([]byte, error) {
 	return finalResponse, nil
 }
 
+// TestGetPublicKeySECP256K1 (only enabled in test mode apps)
 func (ledger *LedgerCosmos) TestGetPublicKeySECP256K1() ([]byte, error) {
 	message := []byte{userCLA, userINSPublicKeySECP256K1Test, 0, 0, 0}
 	response, err := ledger.api.Exchange(message)
@@ -214,9 +209,10 @@ func (ledger *LedgerCosmos) TestGetPublicKeySECP256K1() ([]byte, error) {
 	return response, nil
 }
 
+// TestSignSECP256K1 (only enabled in test mode apps)
 func (ledger *LedgerCosmos) TestSignSECP256K1(transaction []byte) ([]byte, error) {
 	var packetIndex byte = 1
-	var packetCount byte = byte(math.Ceil(float64(len(transaction)) / float64(userMessageChunkSize)))
+	var packetCount = byte(math.Ceil(float64(len(transaction)) / float64(userMessageChunkSize)))
 
 	var finalResponse []byte
 
@@ -243,9 +239,9 @@ func (ledger *LedgerCosmos) TestSignSECP256K1(transaction []byte) ([]byte, error
 	return finalResponse, nil
 }
 
-func (ledger *LedgerCosmos) sign(instruction byte, bip32_path []uint32, transaction []byte) ([]byte, error) {
+func (ledger *LedgerCosmos) sign(instruction byte, bip32Path []uint32, transaction []byte) ([]byte, error) {
 	var packetIndex byte = 1
-	var packetCount byte = 1 + byte(math.Ceil(float64(len(transaction))/float64(userMessageChunkSize)))
+	var packetCount = 1 + byte(math.Ceil(float64(len(transaction))/float64(userMessageChunkSize)))
 
 	var finalResponse []byte
 
@@ -254,7 +250,7 @@ func (ledger *LedgerCosmos) sign(instruction byte, bip32_path []uint32, transact
 	for packetIndex <= packetCount {
 		chunk := userMessageChunkSize
 		if packetIndex == 1 {
-			pathBytes, err := getBip32bytes(bip32_path, 3)
+			pathBytes, err := common.GetBip32bytes(bip32Path, 3)
 			if err != nil {
 				return nil, err
 			}

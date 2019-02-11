@@ -14,7 +14,7 @@
 *  limitations under the License.
 ********************************************************************************/
 
-package ledger_cosmos_go
+package cosmos
 
 import (
 	"encoding/hex"
@@ -98,7 +98,7 @@ func Test_UserShowAddresses(t *testing.T) {
 	hrp := "cosmos"
 	path := []uint32{44, 118, 0, 0, 0}
 
-	err = userApp.ShowPublicKeySECP256K1(hrp, path)
+	err = userApp.ShowAddressSECP256K1(hrp, path)
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
@@ -201,19 +201,19 @@ func Test_UserSign(t *testing.T) {
 		return
 	}
 
-	pub__, err := secp256k1.ParsePubKey(pubKey[:], secp256k1.S256())
+	pub2, err := secp256k1.ParsePubKey(pubKey[:], secp256k1.S256())
 	if err != nil {
 		t.Fatalf("[ParsePK] Error: " + err.Error())
 		return
 	}
 
-	sig__, err := secp256k1.ParseDERSignature(signature[:], secp256k1.S256())
+	sig2, err := secp256k1.ParseDERSignature(signature[:], secp256k1.S256())
 	if err != nil {
 		t.Fatalf("[ParseSig] Error: " + err.Error())
 		return
 	}
 
-	verified := sig__.Verify(crypto.Sha256(message), pub__)
+	verified := sig2.Verify(crypto.Sha256(message), pub2)
 	if !verified {
 		t.Fatalf("[VerifySig] Error verifying signature: " + err.Error())
 		return
