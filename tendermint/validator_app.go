@@ -14,10 +14,11 @@
 *  limitations under the License.
 ********************************************************************************/
 
-package ledger_cosmos_go
+package tendermint
 
 import (
 	"fmt"
+	"github.com/zondax/ledger-cosmos-go/common"
 	"math"
 
 	"github.com/zondax/ledger-go"
@@ -30,38 +31,57 @@ const (
 	validatorINSPublicKeyED25519 = 1
 	validatorINSSignED25519      = 2
 
-	validator_MessageChunkSize = 250
+	validatorMessageChunkSize = 250
 )
 
 // Validator app
-type LedgerCosmosValidator struct {
+type LedgerTendermintValidator struct {
 	// Add support for this app
 	api *ledger_go.Ledger
 }
 
-func FindLedgerCosmosValidatorApp() (*LedgerCosmosValidator, error) {
-	ledgerApi, err := ledger_go.FindLedger()
+// RequiredCosmosUserAppVersion indicates the minimum required version of the Tendermint app
+func RequiredTendermintValidatorAppVersion() common.VersionInfo {
+	return common.VersionInfo{0, 0, 5, 0,}
+}
+
+// FindLedgerCosmosValidatorApp finds a Cosmos validator app running in a ledger device
+func FindLedgerTendermintValidatorApp() (*LedgerTendermintValidator, error) {
+	ledgerAPI, err := ledger_go.FindLedger()
 
 	if err != nil {
 		return nil, err
 	}
 
-	ledgerCosmosValidatorApp := LedgerCosmosValidator{ledgerApi}
+	ledgerCosmosValidatorApp := LedgerTendermintValidator{ledgerAPI}
 
 	appVersion, err := ledgerCosmosValidatorApp.GetVersion()
 
 	if err != nil {
+		if err.Error() == "[APDU_CODE_CLA_NOT_SUPPORTED] Class not supported" {
+			return nil, fmt.Errorf("are you sure the Tendermint Validator app is open?")
+		}
+		defer ledgerAPI.Close()
 		return nil, err
 	}
 
-	if appVersion.Major < RequiredVersionMajor {
-		return nil, fmt.Errorf("Version not supported")
+	req := RequiredTendermintValidatorAppVersion()
+	if !common.CheckVersion(*appVersion, req) {
+		defer ledgerAPI.Close()
+		return nil, fmt.Errorf(
+			"version not supported. Required >v%d.%d.%d", req.Major, req.Minor, req.Patch)
 	}
 
 	return &ledgerCosmosValidatorApp, err
 }
 
-func (ledger *LedgerCosmosValidator) GetVersion() (*VersionInfo, error) {
+// Close closes a connection with the Cosmos user app
+func (ledger *LedgerTendermintValidator) Close() error {
+	return ledger.api.Close()
+}
+
+// GetVersion returns the current version of the Cosmos user app
+func (ledger *LedgerTendermintValidator) GetVersion() (*common.VersionInfo, error) {
 	message := []byte{validatorCLA, validatorINSGetVersion, 0, 0, 0}
 	response, err := ledger.api.Exchange(message)
 
@@ -73,7 +93,7 @@ func (ledger *LedgerCosmosValidator) GetVersion() (*VersionInfo, error) {
 		return nil, fmt.Errorf("invalid response")
 	}
 
-	return &VersionInfo{
+	return &common.VersionInfo{
 		AppMode: response[0],
 		Major:   response[1],
 		Minor:   response[2],
@@ -81,8 +101,9 @@ func (ledger *LedgerCosmosValidator) GetVersion() (*VersionInfo, error) {
 	}, nil
 }
 
-func (ledger *LedgerCosmosValidator) GetPublicKeyED25519(bip32_path []uint32) ([]byte, error) {
-	pathBytes, err := getBip32bytes(bip32_path, 10)
+// GetPublicKeyED25519 retrieves the public key for the corresponding bip32 derivation path
+func (ledger *LedgerTendermintValidator) GetPublicKeyED25519(bip32Path []uint32) ([]byte, error) {
+	pathBytes, err := common.GetBip32bytes(bip32Path, 10)
 	if err != nil {
 		return nil, err
 	}
@@ -103,18 +124,19 @@ func (ledger *LedgerCosmosValidator) GetPublicKeyED25519(bip32_path []uint32) ([
 	return response, nil
 }
 
-func (ledger *LedgerCosmosValidator) SignED25519(bip32_path []uint32, message []byte) ([]byte, error) {
+// SignSECP256K1 signs a message/vote using the Tendermint validator app
+func (ledger *LedgerTendermintValidator) SignED25519(bip32Path []uint32, message []byte) ([]byte, error) {
 	var packetIndex byte = 1
-	var packetCount byte = 1 + byte(math.Ceil(float64(len(message))/float64(userMessageChunkSize)))
+	var packetCount = 1 + byte(math.Ceil(float64(len(message))/float64(validatorMessageChunkSize)))
 
 	var finalResponse []byte
 
 	var apduMessage []byte
 
 	for packetIndex <= packetCount {
-		chunk := userMessageChunkSize
+		chunk := validatorMessageChunkSize
 		if packetIndex == 1 {
-			pathBytes, err := getBip32bytes(bip32_path, 10)
+			pathBytes, err := common.GetBip32bytes(bip32Path, 10)
 			if err != nil {
 				return nil, err
 			}
@@ -127,7 +149,7 @@ func (ledger *LedgerCosmosValidator) SignED25519(bip32_path []uint32, message []
 
 			apduMessage = append(header, pathBytes...)
 		} else {
-			if len(message) < userMessageChunkSize {
+			if len(message) < validatorMessageChunkSize {
 				chunk = len(message)
 			}
 			header := []byte{

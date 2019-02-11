@@ -14,13 +14,14 @@
 *  limitations under the License.
 ********************************************************************************/
 
-package ledger_cosmos_go
+package common
 
 import (
 	"encoding/binary"
 	"fmt"
 )
 
+// VersionInfo contains app version information
 type VersionInfo struct {
 	AppMode uint8
 	Major   uint8
@@ -28,7 +29,20 @@ type VersionInfo struct {
 	Patch   uint8
 }
 
-func getBip32bytes(bip32Path []uint32, hardenCount int) ([]byte, error) {
+// CheckVersion compares the current version with the required version
+func CheckVersion(ver VersionInfo, req VersionInfo) bool {
+	if ver.Major != req.Major {
+		return ver.Major > req.Major
+	}
+
+	if ver.Minor != req.Minor {
+		return ver.Minor > req.Minor
+	}
+
+	return ver.Patch >= req.Patch
+}
+
+func GetBip32bytes(bip32Path []uint32, hardenCount int) ([]byte, error) {
 	message := make([]byte, 41)
 	if len(bip32Path) > 10 {
 		return nil, fmt.Errorf("maximum bip32 depth = 10")

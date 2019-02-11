@@ -14,7 +14,7 @@
 *  limitations under the License.
 ********************************************************************************/
 
-package ledger_cosmos_go
+package common
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ import (
 func Test_PathGeneration0(t *testing.T) {
 	bip32Path := []uint32{44, 100, 0, 0, 0}
 
-	pathBytes, err := getBip32bytes(bip32Path, 0)
+	pathBytes, err := GetBip32bytes(bip32Path, 0)
 
 	if err != nil {
 		t.Fatalf( "Detected error, err: %s\n", err.Error())
@@ -49,7 +49,7 @@ func Test_PathGeneration0(t *testing.T) {
 func Test_PathGeneration2(t *testing.T) {
 	bip32Path := []uint32{44, 118, 0, 0, 0}
 
-	pathBytes, err := getBip32bytes(bip32Path, 2)
+	pathBytes, err := GetBip32bytes(bip32Path, 2)
 
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
@@ -73,7 +73,7 @@ func Test_PathGeneration2(t *testing.T) {
 func Test_PathGeneration3(t *testing.T) {
 	bip32Path := []uint32{44, 118, 0, 0, 0}
 
-	pathBytes, err := getBip32bytes(bip32Path, 3)
+	pathBytes, err := GetBip32bytes(bip32Path, 3)
 
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
