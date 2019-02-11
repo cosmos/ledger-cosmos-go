@@ -30,7 +30,7 @@ const (
 	validatorINSPublicKeyED25519 = 1
 	validatorINSSignED25519      = 2
 
-	validator_MessageChunkSize = 250
+	validatorMessageChunkSize = 250
 )
 
 // Validator app
@@ -55,7 +55,7 @@ func FindLedgerCosmosValidatorApp() (*LedgerCosmosValidator, error) {
 	}
 
 	if appVersion.Major < RequiredVersionMajor {
-		return nil, fmt.Errorf("Version not supported")
+		return nil, fmt.Errorf("version not supported")
 	}
 
 	return &ledgerCosmosValidatorApp, err
@@ -105,14 +105,14 @@ func (ledger *LedgerCosmosValidator) GetPublicKeyED25519(bip32_path []uint32) ([
 
 func (ledger *LedgerCosmosValidator) SignED25519(bip32_path []uint32, message []byte) ([]byte, error) {
 	var packetIndex byte = 1
-	var packetCount byte = 1 + byte(math.Ceil(float64(len(message))/float64(userMessageChunkSize)))
+	var packetCount byte = 1 + byte(math.Ceil(float64(len(message))/float64(validatorMessageChunkSize)))
 
 	var finalResponse []byte
 
 	var apduMessage []byte
 
 	for packetIndex <= packetCount {
-		chunk := userMessageChunkSize
+		chunk := validatorMessageChunkSize
 		if packetIndex == 1 {
 			pathBytes, err := getBip32bytes(bip32_path, 10)
 			if err != nil {
@@ -127,7 +127,7 @@ func (ledger *LedgerCosmosValidator) SignED25519(bip32_path []uint32, message []
 
 			apduMessage = append(header, pathBytes...)
 		} else {
-			if len(message) < userMessageChunkSize {
+			if len(message) < validatorMessageChunkSize {
 				chunk = len(message)
 			}
 			header := []byte{

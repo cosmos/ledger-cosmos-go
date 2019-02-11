@@ -1,5 +1,3 @@
-// +build ledger_device
-
 /*******************************************************************************
 *   (c) 2018 ZondaX GmbH
 *
@@ -29,6 +27,8 @@ import (
 	"testing"
 )
 
+// Ledger Test Mnemonic: equip will roof matter pink blind book anxiety banner elbow sun young
+
 func Test_UserFindLedger(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
@@ -36,6 +36,7 @@ func Test_UserFindLedger(t *testing.T) {
 	}
 
 	assert.NotNil(t, userApp)
+	defer userApp.Close()
 }
 
 func Test_UserGetVersion(t *testing.T) {
@@ -43,6 +44,7 @@ func Test_UserGetVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	defer userApp.Close()
 
 	userApp.api.Logging = true
 
@@ -52,8 +54,8 @@ func Test_UserGetVersion(t *testing.T) {
 
 	assert.Equal(t, uint8(0x0), version.AppMode, "TESTING MODE ENABLED!!")
 	assert.Equal(t, uint8(0x1), version.Major, "Wrong Major version")
-	assert.Equal(t, uint8(0x0), version.Minor, "Wrong Minor version")
-	assert.Equal(t, uint8(0x1), version.Patch, "Wrong Patch version")
+	assert.Equal(t, uint8(0x1), version.Minor, "Wrong Minor version")
+	assert.Equal(t, uint8(0x0), version.Patch, "Wrong Patch version")
 }
 
 func Test_UserGetPublicKey(t *testing.T) {
@@ -61,6 +63,7 @@ func Test_UserGetPublicKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	defer userApp.Close()
 
 	userApp.api.Logging = true
 
@@ -83,13 +86,30 @@ func Test_UserGetPublicKey(t *testing.T) {
 	require.Nil(t, err, "Error parsing public key err: %s\n", err)
 }
 
-// Ledger Test Mnemonic: equip will roof matter pink blind book anxiety banner elbow sun young
+func Test_UserShowAddresses(t *testing.T) {
+	userApp, err := FindLedgerCosmosUserApp()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer userApp.Close()
+
+	userApp.api.Logging = true
+
+	hrp := "cosmos"
+	path := []uint32{44, 118, 0, 0, 0}
+
+	err = userApp.ShowPublicKeySECP256K1(hrp, path)
+	if err != nil {
+		t.Fatalf("Detected error, err: %s\n", err.Error())
+	}
+}
 
 func Test_UserPK_HDPaths(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	defer userApp.Close()
 
 	userApp.api.Logging = true
 
@@ -158,6 +178,7 @@ func Test_UserSign(t *testing.T) {
 	if err != nil {
 		assert.Error(t, err)
 	}
+	defer userApp.Close()
 
 	userApp.api.Logging = true
 
