@@ -98,7 +98,7 @@ func Test_UserShowAddresses(t *testing.T) {
 	hrp := "cosmos"
 	path := []uint32{44, 118, 0, 0, 0}
 
-	err = userApp.ShowAddressSECP256K1(hrp, path)
+	err = userApp.ShowAddressSECP256K1(path, hrp)
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
