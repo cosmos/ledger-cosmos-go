@@ -41,12 +41,13 @@ const (
 
 // LedgerCosmos represents a connection to the Cosmos app in a Ledger Nano S device
 type LedgerCosmos struct {
-	api *ledger_go.Ledger
+	api     *ledger_go.Ledger
+	version common.VersionInfo
 }
 
 // RequiredCosmosUserAppVersion indicates the minimum required version of the Cosmos app
 func RequiredCosmosUserAppVersion() common.VersionInfo {
-	return common.VersionInfo{Major: 1, Minor: 1,}
+	return common.VersionInfo{Major: 1, Minor: 0,}
 }
 
 // FindLedgerCosmosUserApp finds a Cosmos user app running in a ledger device
@@ -57,9 +58,8 @@ func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 		return nil, err
 	}
 
-	ledgerCosmosUserApp := LedgerCosmos{ledgerAPI}
-
-	appVersion, err := ledgerCosmosUserApp.GetVersion()
+	app := LedgerCosmos{ledgerAPI, common.VersionInfo{}}
+	appVersion, err := app.GetVersion()
 
 	if err != nil {
 		defer ledgerAPI.Close()
@@ -76,7 +76,7 @@ func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 			"version not supported. Required >v%d.%d.%d", req.Major, req.Minor, req.Patch)
 	}
 
-	return &ledgerCosmosUserApp, err
+	return &app, err
 }
 
 // Close closes a connection with the Cosmos user app
@@ -97,12 +97,14 @@ func (ledger *LedgerCosmos) GetVersion() (*common.VersionInfo, error) {
 		return nil, fmt.Errorf("invalid response")
 	}
 
-	return &common.VersionInfo{
+	ledger.version = common.VersionInfo{
 		AppMode: response[0],
 		Major:   response[1],
 		Minor:   response[2],
 		Patch:   response[3],
-	}, nil
+	}
+
+	return &ledger.version, nil
 }
 
 // SignSECP256K1 signs a transaction using Cosmos user app
@@ -148,6 +150,12 @@ func (ledger *LedgerCosmos) ShowAddressSECP256K1(hrp string, bip32Path []uint32)
 		if !validHRPByte(b) {
 			return fmt.Errorf("all characters in the HRP must be in the [33, 126] range")
 		}
+	}
+
+	// Check that app is at least 1.1.0
+	requiredVersion :=common.VersionInfo{0, 1, 1, 0,}
+	if !common.CheckVersion(ledger.version, requiredVersion){
+		return fmt.Errorf("command requires at least app version %v", requiredVersion)
 	}
 
 	pathBytes, err := common.GetBip32bytes(bip32Path, 3)

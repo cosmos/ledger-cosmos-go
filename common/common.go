@@ -29,6 +29,10 @@ type VersionInfo struct {
 	Patch   uint8
 }
 
+func (c VersionInfo) String() string {
+	return fmt.Sprintf("%d.%d.%d", c.Major, c.Minor, c.Patch)
+}
+
 // CheckVersion compares the current version with the required version
 func CheckVersion(ver VersionInfo, req VersionInfo) bool {
 	if ver.Major != req.Major {

@@ -22,6 +22,12 @@ import (
 	"testing"
 )
 
+func Test_PrintVersion(t *testing.T) {
+	reqVersion := VersionInfo{0, 1, 2, 3}
+	s := fmt.Sprintf("%v", reqVersion)
+	assert.Equal(t, "1.2.3", s)
+}
+
 func Test_PathGeneration0(t *testing.T) {
 	bip32Path := []uint32{44, 100, 0, 0, 0}
 
