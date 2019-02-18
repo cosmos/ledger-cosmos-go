@@ -14,11 +14,10 @@
 *  limitations under the License.
 ********************************************************************************/
 
-package cosmos
+package ledger_cosmos_go
 
 import (
 	"fmt"
-	"github.com/zondax/ledger-cosmos-go/common"
 	"math"
 
 	"github.com/zondax/ledger-go"
@@ -42,12 +41,12 @@ const (
 // LedgerCosmos represents a connection to the Cosmos app in a Ledger Nano S device
 type LedgerCosmos struct {
 	api     *ledger_go.Ledger
-	version common.VersionInfo
+	version VersionInfo
 }
 
 // RequiredCosmosUserAppVersion indicates the minimum required version of the Cosmos app
-func RequiredCosmosUserAppVersion() common.VersionInfo {
-	return common.VersionInfo{Major: 1, Minor: 0,}
+func RequiredCosmosUserAppVersion() VersionInfo {
+	return VersionInfo{Major: 1, Minor: 0,}
 }
 
 // FindLedgerCosmosUserApp finds a Cosmos user app running in a ledger device
@@ -58,7 +57,7 @@ func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 		return nil, err
 	}
 
-	app := LedgerCosmos{ledgerAPI, common.VersionInfo{}}
+	app := LedgerCosmos{ledgerAPI, VersionInfo{}}
 	appVersion, err := app.GetVersion()
 
 	if err != nil {
@@ -70,7 +69,7 @@ func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 	}
 
 	req := RequiredCosmosUserAppVersion()
-	if !common.CheckVersion(*appVersion, req) {
+	if !CheckVersion(*appVersion, req) {
 		defer ledgerAPI.Close()
 		return nil, fmt.Errorf(
 			"version not supported. Required >v%d.%d.%d", req.Major, req.Minor, req.Patch)
@@ -85,7 +84,7 @@ func (ledger *LedgerCosmos) Close() error {
 }
 
 // GetVersion returns the current version of the Cosmos user app
-func (ledger *LedgerCosmos) GetVersion() (*common.VersionInfo, error) {
+func (ledger *LedgerCosmos) GetVersion() (*VersionInfo, error) {
 	message := []byte{userCLA, userINSGetVersion, 0, 0, 0}
 	response, err := ledger.api.Exchange(message)
 
@@ -97,7 +96,7 @@ func (ledger *LedgerCosmos) GetVersion() (*common.VersionInfo, error) {
 		return nil, fmt.Errorf("invalid response")
 	}
 
-	ledger.version = common.VersionInfo{
+	ledger.version = VersionInfo{
 		AppMode: response[0],
 		Major:   response[1],
 		Minor:   response[2],
@@ -114,7 +113,7 @@ func (ledger *LedgerCosmos) SignSECP256K1(bip32Path []uint32, transaction []byte
 
 // GetPublicKeySECP256K1 retrieves the public key for the corresponding bip32 derivation path
 func (ledger *LedgerCosmos) GetPublicKeySECP256K1(bip32Path []uint32) ([]byte, error) {
-	pathBytes, err := common.GetBip32bytes(bip32Path, 3)
+	pathBytes, err := GetBip32bytes(bip32Path, 3)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +139,7 @@ func validHRPByte(b byte) bool {
 }
 
 // ShowAddressSECP256K1 shows the address for the corresponding bip32 derivation path
-func (ledger *LedgerCosmos) ShowAddressSECP256K1(hrp string, bip32Path []uint32) error {
+func (ledger *LedgerCosmos) ShowAddressSECP256K1(bip32Path []uint32, hrp string) error {
 	if len(hrp) > 83 {
 		return fmt.Errorf("hrp len should be <10")
 	}
@@ -153,12 +152,12 @@ func (ledger *LedgerCosmos) ShowAddressSECP256K1(hrp string, bip32Path []uint32)
 	}
 
 	// Check that app is at least 1.1.0
-	requiredVersion :=common.VersionInfo{0, 1, 1, 0,}
-	if !common.CheckVersion(ledger.version, requiredVersion){
+	requiredVersion := VersionInfo{0, 1, 1, 0,}
+	if !CheckVersion(ledger.version, requiredVersion){
 		return fmt.Errorf("command requires at least app version %v", requiredVersion)
 	}
 
-	pathBytes, err := common.GetBip32bytes(bip32Path, 3)
+	pathBytes, err := GetBip32bytes(bip32Path, 3)
 	if err != nil {
 		return err
 	}
@@ -259,7 +258,7 @@ func (ledger *LedgerCosmos) sign(instruction byte, bip32Path []uint32, transacti
 	for packetIndex <= packetCount {
 		chunk := userMessageChunkSize
 		if packetIndex == 1 {
-			pathBytes, err := common.GetBip32bytes(bip32Path, 3)
+			pathBytes, err := GetBip32bytes(bip32Path, 3)
 			if err != nil {
 				return nil, err
 			}

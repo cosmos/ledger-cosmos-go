@@ -14,7 +14,7 @@
 *  limitations under the License.
 ********************************************************************************/
 
-package tendermint
+package ledger_cosmos_go
 
 import (
 	"github.com/stretchr/testify/assert"

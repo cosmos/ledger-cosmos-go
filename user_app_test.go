@@ -14,7 +14,7 @@
 *  limitations under the License.
 ********************************************************************************/
 
-package cosmos
+package ledger_cosmos_go
 
 import (
 	"encoding/hex"

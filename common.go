@@ -14,7 +14,7 @@
 *  limitations under the License.
 ********************************************************************************/
 
-package common
+package ledger_cosmos_go
 
 import (
 	"encoding/binary"

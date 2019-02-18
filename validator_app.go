@@ -14,11 +14,10 @@
 *  limitations under the License.
 ********************************************************************************/
 
-package tendermint
+package ledger_cosmos_go
 
 import (
 	"fmt"
-	"github.com/zondax/ledger-cosmos-go/common"
 	"math"
 
 	"github.com/zondax/ledger-go"
@@ -41,8 +40,8 @@ type LedgerTendermintValidator struct {
 }
 
 // RequiredCosmosUserAppVersion indicates the minimum required version of the Tendermint app
-func RequiredTendermintValidatorAppVersion() common.VersionInfo {
-	return common.VersionInfo{0, 0, 5, 0,}
+func RequiredTendermintValidatorAppVersion() VersionInfo {
+	return VersionInfo{0, 0, 5, 0,}
 }
 
 // FindLedgerCosmosValidatorApp finds a Cosmos validator app running in a ledger device
@@ -66,7 +65,7 @@ func FindLedgerTendermintValidatorApp() (*LedgerTendermintValidator, error) {
 	}
 
 	req := RequiredTendermintValidatorAppVersion()
-	if !common.CheckVersion(*appVersion, req) {
+	if !CheckVersion(*appVersion, req) {
 		defer ledgerAPI.Close()
 		return nil, fmt.Errorf(
 			"version not supported. Required >v%d.%d.%d", req.Major, req.Minor, req.Patch)
@@ -81,7 +80,7 @@ func (ledger *LedgerTendermintValidator) Close() error {
 }
 
 // GetVersion returns the current version of the Cosmos user app
-func (ledger *LedgerTendermintValidator) GetVersion() (*common.VersionInfo, error) {
+func (ledger *LedgerTendermintValidator) GetVersion() (*VersionInfo, error) {
 	message := []byte{validatorCLA, validatorINSGetVersion, 0, 0, 0}
 	response, err := ledger.api.Exchange(message)
 
@@ -93,7 +92,7 @@ func (ledger *LedgerTendermintValidator) GetVersion() (*common.VersionInfo, erro
 		return nil, fmt.Errorf("invalid response")
 	}
 
-	return &common.VersionInfo{
+	return &VersionInfo{
 		AppMode: response[0],
 		Major:   response[1],
 		Minor:   response[2],
@@ -103,7 +102,7 @@ func (ledger *LedgerTendermintValidator) GetVersion() (*common.VersionInfo, erro
 
 // GetPublicKeyED25519 retrieves the public key for the corresponding bip32 derivation path
 func (ledger *LedgerTendermintValidator) GetPublicKeyED25519(bip32Path []uint32) ([]byte, error) {
-	pathBytes, err := common.GetBip32bytes(bip32Path, 10)
+	pathBytes, err := GetBip32bytes(bip32Path, 10)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +135,7 @@ func (ledger *LedgerTendermintValidator) SignED25519(bip32Path []uint32, message
 	for packetIndex <= packetCount {
 		chunk := validatorMessageChunkSize
 		if packetIndex == 1 {
-			pathBytes, err := common.GetBip32bytes(bip32Path, 10)
+			pathBytes, err := GetBip32bytes(bip32Path, 10)
 			if err != nil {
 				return nil, err
 			}
