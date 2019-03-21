@@ -122,12 +122,12 @@
   version = "v0.9.0"
 
 [[projects]]
-  digest = "1:f8e4c0b959174a1fa5946b12f1f2ac7ea5651bef20a9e4a8dac55dbffcaa6cd6"
+  digest = "1:c450d0b3b9217e3926714751c2034a9171e2d769c254ef3c74e5795ad74e1b04"
   name = "github.com/zondax/ledger-go"
   packages = ["."]
   pruneopts = "UT"
-  revision = "69c15f1333a9b6866e5f66096561c7d138894bc5"
-  version = "v0.8.0"
+  revision = "94455688b6fac63ee05a4a61f44d5a4095317f74"
+  version = "v0.9.0"
 
 [[projects]]
   digest = "1:578bbe25849cdc707dfa01cd316556198df9df317fc1608fd2bbbf8967af9785"
