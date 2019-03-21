@@ -274,6 +274,19 @@ func (ledger *LedgerCosmos) sign(instruction byte, bip32Path []uint32, transacti
 
 		response, err := ledger.api.Exchange(message)
 		if err != nil {
+			if err.Error() == "[APDU_CODE_BAD_KEY_HANDLE] The parameters in the data field are incorrect" {
+				// In this special case, we can extract additional info
+				errorMsg := string(response)
+				switch errorMsg {
+				case "ERROR: JSMN_ERROR_NOMEM":
+					return nil, fmt.Errorf("Not enough tokens were provided");
+				case "PARSER ERROR: JSMN_ERROR_INVAL":
+					return nil, fmt.Errorf("Unexpected character in JSON string");
+				case "PARSER ERROR: JSMN_ERROR_PART":
+					return nil, fmt.Errorf("The JSON string is not a complete.");
+				}
+				return nil, fmt.Errorf(errorMsg)
+			}
 			return nil, err
 		}
 

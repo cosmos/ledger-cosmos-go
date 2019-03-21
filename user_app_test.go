@@ -219,3 +219,22 @@ func Test_UserSign(t *testing.T) {
 		return
 	}
 }
+
+func Test_UserSign_Fails(t *testing.T) {
+	userApp, err := FindLedgerCosmosUserApp()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer userApp.Close()
+
+	userApp.api.Logging = true
+
+	path := []uint32{44, 118, 0, 0, 5}
+
+	message := getDummyTx()
+	garbage := []byte{65}
+	message = append(garbage, message...)
+
+	_, err = userApp.SignSECP256K1(path, message)
+	assert.EqualError(t, err, "Unexpected character in JSON string")
+}
