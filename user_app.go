@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/zondax/ledger-go"
+	"github.com/cosmos/ledger-go"
 )
 
 const (
