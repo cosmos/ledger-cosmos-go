@@ -10,6 +10,14 @@
   revision = "ed77733ec07dfc8a513741138419b8d9d3de9d2d"
 
 [[projects]]
+  digest = "1:c450d0b3b9217e3926714751c2034a9171e2d769c254ef3c74e5795ad74e1b04"
+  name = "github.com/cosmos/ledger-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "1e64b5144a7300e8b763ce55040b908a6ed652b0"
+  version = "v0.9.1"
+
+[[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -155,6 +163,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/btcsuite/btcd/btcec",
+    "github.com/cosmos/ledger-go",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/require",
     "github.com/tendermint/tendermint/crypto",
