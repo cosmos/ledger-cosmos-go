@@ -1,4 +1,4 @@
-module github.com/ZondaX/ledger-cosmos-go
+module github.com/cosmos/ledger-cosmos-go
 
 go 1.12
 
