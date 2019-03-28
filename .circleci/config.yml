@@ -1,13 +1,14 @@
 version: 2
+
 jobs:
   build:
     docker:
       - image: golang:1.12
-    working_directory: /go/src/zondax/ledger-cosmos-go
+    environment:
+      GO111MODULE: "on"
+    working_directory: /ledger-cosmos-go
     steps:
       - checkout
-      - run: go get -v -u github.com/golang/dep/cmd/dep
-      - run: dep ensure -v
       - run: go build
       - run: go test common.go
 workflows:

@@ -30,6 +30,7 @@ const (
 	userINSPublicKeySECP256K1           = 1
 	userINSSignSECP256K1                = 2
 	userINSPublicKeySECP256K1ShowBech32 = 3
+	userINSGetBech32PublicKey           = 4
 
 	userINSHash                   = 100
 	userINSPublicKeySECP256K1Test = 101
@@ -153,7 +154,7 @@ func (ledger *LedgerCosmos) ShowAddressSECP256K1(bip32Path []uint32, hrp string)
 
 	// Check that app is at least 1.1.0
 	requiredVersion := VersionInfo{0, 1, 1, 0,}
-	if !CheckVersion(ledger.version, requiredVersion){
+	if !CheckVersion(ledger.version, requiredVersion) {
 		return fmt.Errorf("command requires at least app version %v", requiredVersion)
 	}
 
@@ -172,6 +173,52 @@ func (ledger *LedgerCosmos) ShowAddressSECP256K1(bip32Path []uint32, hrp string)
 	_, err = ledger.api.Exchange(message)
 
 	return err
+}
+
+// ShowAddressSECP256K1 shows the address for the corresponding bip32 derivation path
+func (ledger *LedgerCosmos) GetAddressPubKeySECP256K1(bip32Path []uint32, hrp string) (pubkey []byte, addr string, err error) {
+	if len(hrp) > 83 {
+		return nil, "", fmt.Errorf("hrp len should be <10")
+	}
+
+	hrpBytes := []byte(hrp)
+	for _, b := range hrpBytes {
+		if !validHRPByte(b) {
+			return nil, "", fmt.Errorf("all characters in the HRP must be in the [33, 126] range")
+		}
+	}
+
+	// Check that app is at least 1.3.1
+	requiredVersion := VersionInfo{0, 1, 3, 0,}
+	if !CheckVersion(ledger.version, requiredVersion) {
+		return nil, "", fmt.Errorf("command requires at least app version %v", requiredVersion)
+	}
+
+	pathBytes, err := GetBip32bytes(bip32Path, 3)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// Prepare message
+	header := []byte{userCLA, userINSGetBech32PublicKey, 0, 0, 0}
+	message := append(header, byte(len(hrpBytes)))
+	message = append(message, hrpBytes...)
+	message = append(message, pathBytes...)
+	message[4] = byte(len(message) - len(header)) // update length
+
+	response, err := ledger.api.Exchange(message)
+
+	if err != nil {
+		return nil, "", err
+	}
+	if len(response) < 35+len(hrp) {
+		return nil, "", fmt.Errorf("Invalid response")
+	}
+
+	pubkey = response[0:33]
+	addr = string(response[33 : len(response)])
+
+	return pubkey, addr, err
 }
 
 // Hash returns the hash for the transaction (only enabled in test mode apps)
