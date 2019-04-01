@@ -70,10 +70,10 @@ func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 	}
 
 	req := RequiredCosmosUserAppVersion()
-	if !CheckVersion(*appVersion, req) {
+	err = CheckVersion(*appVersion, req)
+	if err !=nil {
 		defer ledgerAPI.Close()
-		return nil, fmt.Errorf(
-			"version not supported. Required >v%d.%d.%d", req.Major, req.Minor, req.Patch)
+		return nil, err
 	}
 
 	return &app, err
@@ -154,8 +154,9 @@ func (ledger *LedgerCosmos) ShowAddressSECP256K1(bip32Path []uint32, hrp string)
 
 	// Check that app is at least 1.1.0
 	requiredVersion := VersionInfo{0, 1, 1, 0,}
-	if !CheckVersion(ledger.version, requiredVersion) {
-		return fmt.Errorf("command requires at least app version %v", requiredVersion)
+	err := CheckVersion(ledger.version, requiredVersion)
+	if err !=nil {
+		return err
 	}
 
 	pathBytes, err := GetBip32bytes(bip32Path, 3)
@@ -177,6 +178,26 @@ func (ledger *LedgerCosmos) ShowAddressSECP256K1(bip32Path []uint32, hrp string)
 
 // ShowAddressSECP256K1 shows the address for the corresponding bip32 derivation path
 func (ledger *LedgerCosmos) GetAddressPubKeySECP256K1(bip32Path []uint32, hrp string) (pubkey []byte, addr string, err error) {
+	// Check that app is at least 1.3.1
+	requiredVersion := VersionInfo{0, 1, 3, 1,}
+	err = CheckVersion(ledger.version, requiredVersion)
+	if err !=nil {
+		// Temporary backward compatibility
+		requiredVersion := VersionInfo{0, 1, 1, 1,}
+		err = CheckVersion(ledger.version, requiredVersion)
+		if err!=nil {
+			return nil, "", err
+		}
+
+		// Call unsafe function until people can be forced to upgrade to 1.3.0
+		pk, err := ledger.GetPublicKeySECP256K1(bip32Path)
+		if err!=nil{
+			return nil, "", err
+		}
+		// comply with backwards compatible api
+		return pk, "", err
+	}
+
 	if len(hrp) > 83 {
 		return nil, "", fmt.Errorf("hrp len should be <10")
 	}
@@ -186,12 +207,6 @@ func (ledger *LedgerCosmos) GetAddressPubKeySECP256K1(bip32Path []uint32, hrp st
 		if !validHRPByte(b) {
 			return nil, "", fmt.Errorf("all characters in the HRP must be in the [33, 126] range")
 		}
-	}
-
-	// Check that app is at least 1.3.1
-	requiredVersion := VersionInfo{0, 1, 3, 0,}
-	if !CheckVersion(ledger.version, requiredVersion) {
-		return nil, "", fmt.Errorf("command requires at least app version %v", requiredVersion)
 	}
 
 	pathBytes, err := GetBip32bytes(bip32Path, 3)
