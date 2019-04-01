@@ -33,17 +33,43 @@ func (c VersionInfo) String() string {
 	return fmt.Sprintf("%d.%d.%d", c.Major, c.Minor, c.Patch)
 }
 
+// NotSupportedError the command is not supported by this app
+type VersionRequiredError struct {
+	Found    VersionInfo
+	Required VersionInfo
+}
+
+func (e VersionRequiredError) Error() string {
+	return fmt.Sprintf("App Version required %s - Version found: %s", e.Required, e.Found)
+}
+
+func NewVersionRequiredError(req VersionInfo, ver VersionInfo) error {
+	return &VersionRequiredError{
+		Found:    ver,
+		Required: req,
+	}
+}
+
 // CheckVersion compares the current version with the required version
-func CheckVersion(ver VersionInfo, req VersionInfo) bool {
+func CheckVersion(ver VersionInfo, req VersionInfo) error {
 	if ver.Major != req.Major {
-		return ver.Major > req.Major
+		if (ver.Major > req.Major){
+			return nil
+		}
+		return NewVersionRequiredError(req, ver)
 	}
 
 	if ver.Minor != req.Minor {
-		return ver.Minor > req.Minor
+		if (ver.Minor > req.Minor) {
+			return nil
+		}
+		return NewVersionRequiredError(req, ver)
 	}
 
-	return ver.Patch >= req.Patch
+	if (ver.Patch >= req.Patch){
+		return nil
+	}
+	return NewVersionRequiredError(req, ver)
 }
 
 func GetBip32bytes(bip32Path []uint32, hardenCount int) ([]byte, error) {
