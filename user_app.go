@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/btcsuite/btcd/btcec"
 	"github.com/cosmos/ledger-go"
 )
 
@@ -131,49 +132,16 @@ func (ledger *LedgerCosmos) GetPublicKeySECP256K1(bip32Path []uint32) ([]byte, e
 		return nil, fmt.Errorf("invalid response")
 	}
 
-	return response, nil
+	cmp, err := btcec.ParsePubKey(response[:], btcec.S256())
+	if err != nil {
+		return nil, err
+	}
+	return cmp.SerializeCompressed(), nil
 }
 
 func validHRPByte(b byte) bool {
 	// https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki
 	return b >= 33 && b <= 126
-}
-
-// ShowAddressSECP256K1 shows the address for the corresponding bip32 derivation path
-func (ledger *LedgerCosmos) ShowAddressSECP256K1(bip32Path []uint32, hrp string) error {
-	if len(hrp) > 83 {
-		return fmt.Errorf("hrp len should be <10")
-	}
-
-	hrpBytes := []byte(hrp)
-	for _, b := range hrpBytes {
-		if !validHRPByte(b) {
-			return fmt.Errorf("all characters in the HRP must be in the [33, 126] range")
-		}
-	}
-
-	// Check that app is at least 1.1.0
-	requiredVersion := VersionInfo{0, 1, 1, 0,}
-	err := CheckVersion(ledger.version, requiredVersion)
-	if err !=nil {
-		return err
-	}
-
-	pathBytes, err := GetBip32bytes(bip32Path, 3)
-	if err != nil {
-		return err
-	}
-
-	// Prepare message
-	header := []byte{userCLA, userINSPublicKeySECP256K1ShowBech32, 0, 0, 0}
-	message := append(header, byte(len(hrpBytes)))
-	message = append(message, hrpBytes...)
-	message = append(message, pathBytes...)
-	message[4] = byte(len(message) - len(header)) // update length
-
-	_, err = ledger.api.Exchange(message)
-
-	return err
 }
 
 // ShowAddressSECP256K1 shows the address for the corresponding bip32 derivation path
