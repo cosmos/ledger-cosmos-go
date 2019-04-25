@@ -76,6 +76,34 @@ func Test_UserGetPublicKey(t *testing.T) {
 
 	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
 	fmt.Printf("PUBLIC KEY: %x\n", pubKey)
+
+	assert.Equal(t, "03cb5a33c61595206294140c45efa8a817533e31aa05ea18343033a0732a677005", hex.EncodeToString(pubKey), "Unexpected pubkey")
+}
+
+func Test_GetAddressPubKeySECP256K1_Zero(t *testing.T) {
+	userApp, err := FindLedgerCosmosUserApp()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer userApp.Close()
+
+	userApp.api.Logging = true
+
+	hrp := "cosmos"
+	path := []uint32{44, 118, 0, 0, 0}
+
+	pubKey, addr, err := userApp.GetAddressPubKeySECP256K1(path, hrp)
+	if err != nil {
+		t.Fatalf("Detected error, err: %s\n", err.Error())
+	}
+
+	fmt.Printf("PUBLIC KEY : %x\n", pubKey)
+	fmt.Printf("BECH32 ADDR: %s\n", addr)
+
+	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
+
+	assert.Equal(t, "034fef9cd7c4c63588d3b03feb5281b9d232cba34d6f3d71aee59211ffbfe1fe87", hex.EncodeToString(pubKey), "Unexpected pubkey")
+	assert.Equal(t, "cosmos1w34k53py5v5xyluazqpq65agyajavep2rflq6h", addr, "Unexpected addr")
 }
 
 func Test_GetAddressPubKeySECP256K1(t *testing.T) {
@@ -100,7 +128,7 @@ func Test_GetAddressPubKeySECP256K1(t *testing.T) {
 
 	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
 
-	assert.Equal(t, "b5b4b8d01844d6c4c37dd4626694c216fbf93821d50641a7ed8104394e19ece105", hex.EncodeToString(pubKey), "Unexpected pubkey")
+	assert.Equal(t, "03cb5a33c61595206294140c45efa8a817533e31aa05ea18343033a0732a677005", hex.EncodeToString(pubKey), "Unexpected pubkey")
 	assert.Equal(t, "cosmos162zm3k8mc685592d7vej2lxrp58mgmkcec76d6", addr, "Unexpected addr")
 }
 

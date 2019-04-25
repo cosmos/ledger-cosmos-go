@@ -109,11 +109,13 @@ func (ledger *LedgerCosmos) GetVersion() (*VersionInfo, error) {
 }
 
 // SignSECP256K1 signs a transaction using Cosmos user app
+// this command requires user confirmation in the device
 func (ledger *LedgerCosmos) SignSECP256K1(bip32Path []uint32, transaction []byte) ([]byte, error) {
 	return ledger.sign(userINSSignSECP256K1, bip32Path, transaction)
 }
 
-// GetPublicKeySECP256K1 retrieves the public key for the corresponding bip32 derivation path
+// GetPublicKeySECP256K1 retrieves the public key for the corresponding bip32 derivation path (compressed)
+// this command DOES NOT require user confirmation in the device
 func (ledger *LedgerCosmos) GetPublicKeySECP256K1(bip32Path []uint32) ([]byte, error) {
 	pathBytes, err := GetBip32bytes(bip32Path, 3)
 	if err != nil {
@@ -144,7 +146,8 @@ func validHRPByte(b byte) bool {
 	return b >= 33 && b <= 126
 }
 
-// ShowAddressSECP256K1 shows the address for the corresponding bip32 derivation path
+// GetAddressPubKeySECP256K1 returns the pubkey (compressed) and address (bech(
+// this command requires user confirmation in the device
 func (ledger *LedgerCosmos) GetAddressPubKeySECP256K1(bip32Path []uint32, hrp string) (pubkey []byte, addr string, err error) {
 	// Check that app is at least 1.3.1
 	requiredVersion := VersionInfo{0, 1, 3, 1,}
