@@ -33,9 +33,9 @@ func Test_ValGetVersion(t *testing.T) {
 
 	version, err := validatorApp.GetVersion()
 	require.Nil(t, err, "Detected error")
-	assert.Equal(t, uint8(0xFF), version.AppMode, "TESTING MODE NOT ENABLED")
+	assert.Equal(t, uint8(0x0), version.AppMode, "TESTING MODE NOT ENABLED")
 	assert.Equal(t, uint8(0x0), version.Major, "Wrong Major version")
-	assert.Equal(t, uint8(0x5), version.Minor, "Wrong Minor version")
+	assert.Equal(t, uint8(0x9), version.Minor, "Wrong Minor version")
 	assert.Equal(t, uint8(0x0), version.Patch, "Wrong Patch version")
 }
 
