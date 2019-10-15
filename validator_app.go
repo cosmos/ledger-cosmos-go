@@ -101,7 +101,7 @@ func (ledger *LedgerTendermintValidator) GetVersion() (*VersionInfo, error) {
 
 // GetPublicKeyED25519 retrieves the public key for the corresponding bip32 derivation path
 func (ledger *LedgerTendermintValidator) GetPublicKeyED25519(bip32Path []uint32) ([]byte, error) {
-	pathBytes, err := GetBip32bytes(bip32Path, 10)
+	pathBytes, err := GetBip32bytesv1(bip32Path, 10)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (ledger *LedgerTendermintValidator) SignED25519(bip32Path []uint32, message
 	for packetIndex <= packetCount {
 		chunk := validatorMessageChunkSize
 		if packetIndex == 1 {
-			pathBytes, err := GetBip32bytes(bip32Path, 10)
+			pathBytes, err := GetBip32bytesv1(bip32Path, 10)
 			if err != nil {
 				return nil, err
 			}

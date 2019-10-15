@@ -31,7 +31,7 @@ func Test_PrintVersion(t *testing.T) {
 func Test_PathGeneration0(t *testing.T) {
 	bip32Path := []uint32{44, 100, 0, 0, 0}
 
-	pathBytes, err := GetBip32bytes(bip32Path, 0)
+	pathBytes, err := GetBip32bytesv1(bip32Path, 0)
 
 	if err != nil {
 		t.Fatalf( "Detected error, err: %s\n", err.Error())
@@ -55,7 +55,7 @@ func Test_PathGeneration0(t *testing.T) {
 func Test_PathGeneration2(t *testing.T) {
 	bip32Path := []uint32{44, 118, 0, 0, 0}
 
-	pathBytes, err := GetBip32bytes(bip32Path, 2)
+	pathBytes, err := GetBip32bytesv1(bip32Path, 2)
 
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
@@ -79,7 +79,7 @@ func Test_PathGeneration2(t *testing.T) {
 func Test_PathGeneration3(t *testing.T) {
 	bip32Path := []uint32{44, 118, 0, 0, 0}
 
-	pathBytes, err := GetBip32bytes(bip32Path, 3)
+	pathBytes, err := GetBip32bytesv1(bip32Path, 3)
 
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
@@ -96,6 +96,78 @@ func Test_PathGeneration3(t *testing.T) {
 	assert.Equal(
 		t,
 		"052c000080760000800000008000000000000000000000000000000000000000000000000000000000",
+		fmt.Sprintf("%x", pathBytes),
+		"Unexpected PathBytes\n")
+}
+
+func Test_PathGeneration0v2(t *testing.T) {
+	bip32Path := []uint32{44, 100, 0, 0, 0}
+
+	pathBytes, err := GetBip32bytesv2(bip32Path, 0)
+
+	if err != nil {
+		t.Fatalf( "Detected error, err: %s\n", err.Error())
+	}
+
+	fmt.Printf("Path: %x\n", pathBytes)
+
+	assert.Equal(
+		t,
+		40,
+		len(pathBytes),
+		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 40)
+
+	assert.Equal(
+		t,
+		"2c000000640000000000000000000000000000000000000000000000000000000000000000000000",
+		fmt.Sprintf("%x", pathBytes),
+		"Unexpected PathBytes\n")
+}
+
+func Test_PathGeneration2v2(t *testing.T) {
+	bip32Path := []uint32{44, 118, 0, 0, 0}
+
+	pathBytes, err := GetBip32bytesv2(bip32Path, 2)
+
+	if err != nil {
+		t.Fatalf("Detected error, err: %s\n", err.Error())
+	}
+
+	fmt.Printf("Path: %x\n", pathBytes)
+
+	assert.Equal(
+		t,
+		40,
+		len(pathBytes),
+		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 40)
+
+	assert.Equal(
+		t,
+		"2c000080760000800000000000000000000000000000000000000000000000000000000000000000",
+		fmt.Sprintf("%x", pathBytes),
+		"Unexpected PathBytes\n")
+}
+
+func Test_PathGeneration3v2(t *testing.T) {
+	bip32Path := []uint32{44, 118, 0, 0, 0}
+
+	pathBytes, err := GetBip32bytesv2(bip32Path, 3)
+
+	if err != nil {
+		t.Fatalf("Detected error, err: %s\n", err.Error())
+	}
+
+	fmt.Printf("Path: %x\n", pathBytes)
+
+	assert.Equal(
+		t,
+		40,
+		len(pathBytes),
+		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 40)
+
+	assert.Equal(
+		t,
+		"2c000080760000800000008000000000000000000000000000000000000000000000000000000000",
 		fmt.Sprintf("%x", pathBytes),
 		"Unexpected PathBytes\n")
 }
