@@ -33,7 +33,7 @@ func (c VersionInfo) String() string {
 	return fmt.Sprintf("%d.%d.%d", c.Major, c.Minor, c.Patch)
 }
 
-// NotSupportedError the command is not supported by this app
+// VersionRequiredError the command is not supported by this app
 type VersionRequiredError struct {
 	Found    VersionInfo
 	Required VersionInfo
@@ -72,7 +72,7 @@ func CheckVersion(ver VersionInfo, req VersionInfo) error {
 	return NewVersionRequiredError(req, ver)
 }
 
-func GetBip32bytes(bip32Path []uint32, hardenCount int) ([]byte, error) {
+func GetBip32bytesv1(bip32Path []uint32, hardenCount int) ([]byte, error) {
 	message := make([]byte, 41)
 	if len(bip32Path) > 10 {
 		return nil, fmt.Errorf("maximum bip32 depth = 10")
@@ -80,6 +80,22 @@ func GetBip32bytes(bip32Path []uint32, hardenCount int) ([]byte, error) {
 	message[0] = byte(len(bip32Path))
 	for index, element := range bip32Path {
 		pos := 1 + index*4
+		value := element
+		if index < hardenCount {
+			value = 0x80000000 | element
+		}
+		binary.LittleEndian.PutUint32(message[pos:], value)
+	}
+	return message, nil
+}
+
+func GetBip32bytesv2(bip44Path []uint32, hardenCount int) ([]byte, error) {
+	message := make([]byte, 40)
+	if len(bip44Path) != 5 {
+		return nil, fmt.Errorf("path should contain 5 elements")
+	}
+	for index, element := range bip44Path {
+		pos := index*4
 		value := element
 		if index < hardenCount {
 			value = 0x80000000 | element

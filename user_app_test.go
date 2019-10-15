@@ -53,8 +53,8 @@ func Test_UserGetVersion(t *testing.T) {
 	fmt.Println(version)
 
 	assert.Equal(t, uint8(0x0), version.AppMode, "TESTING MODE ENABLED!!")
-	assert.Equal(t, uint8(0x1), version.Major, "Wrong Major version")
-	assert.Equal(t, uint8(0x5), version.Minor, "Wrong Minor version")
+	assert.Equal(t, uint8(0x2), version.Major, "Wrong Major version")
+	assert.Equal(t, uint8(0x1), version.Minor, "Wrong Minor version")
 	assert.Equal(t, uint8(0x0), version.Patch, "Wrong Patch version")
 }
 
@@ -74,10 +74,14 @@ func Test_UserGetPublicKey(t *testing.T) {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
-	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
+	assert.Equal(t, 33, len(pubKey),
+		"Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
 	fmt.Printf("PUBLIC KEY: %x\n", pubKey)
 
-	assert.Equal(t, "03cb5a33c61595206294140c45efa8a817533e31aa05ea18343033a0732a677005", hex.EncodeToString(pubKey), "Unexpected pubkey")
+	assert.Equal(t,
+		"03cb5a33c61595206294140c45efa8a817533e31aa05ea18343033a0732a677005",
+		hex.EncodeToString(pubKey),
+		"Unexpected pubkey")
 }
 
 func Test_GetAddressPubKeySECP256K1_Zero(t *testing.T) {
@@ -265,5 +269,10 @@ func Test_UserSign_Fails(t *testing.T) {
 	message = append(garbage, message...)
 
 	_, err = userApp.SignSECP256K1(path, message)
-	assert.EqualError(t, err, "Invalid character in JSON string")
+	assert.Error(t, err)
+	errMessage := err.Error()
+
+	if errMessage != "Invalid character in JSON string" && errMessage != "Unexpected characters" {
+		assert.Fail(t, "Unexpected error message returned: " + errMessage )
+	}
 }
