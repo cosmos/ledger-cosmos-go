@@ -20,11 +20,12 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
 )
 
 // Ledger Test Mnemonic: equip will roof matter pink blind book anxiety banner elbow sun young
@@ -56,6 +57,39 @@ func Test_UserGetVersion(t *testing.T) {
 	assert.Equal(t, uint8(0x2), version.Major, "Wrong Major version")
 	assert.Equal(t, uint8(0x1), version.Minor, "Wrong Minor version")
 	assert.Equal(t, uint8(0x0), version.Patch, "Wrong Patch version")
+}
+
+func Test_CheckVersion(t *testing.T) {
+	userApp, err := FindLedgerCosmosUserApp()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer userApp.Close()
+
+	userApp.api.Logging = true
+
+	version, err := userApp.GetVersion()
+	require.NoError(t, err, "Detected error")
+	fmt.Println(version)
+
+	err = userApp.CheckVersion(*version)
+	if version.AppMode == appModeCosmos {
+		if (version.Major == 1 && version.Minor >= 5 && version.Patch >= 1) ||
+			(version.Major == 2 && version.Minor >= 1 && version.Patch >= 0) {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
+		}
+	} else if version.AppMode == appModeTerra {
+		if version.Major == 1 && version.Minor >= 0 && version.Patch >= 0 {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
+		}
+	} else {
+		require.Error(t, err)
+	}
+
 }
 
 func Test_UserGetPublicKey(t *testing.T) {
@@ -273,6 +307,6 @@ func Test_UserSign_Fails(t *testing.T) {
 	errMessage := err.Error()
 
 	if errMessage != "Invalid character in JSON string" && errMessage != "Unexpected characters" {
-		assert.Fail(t, "Unexpected error message returned: " + errMessage )
+		assert.Fail(t, "Unexpected error message returned: "+errMessage)
 	}
 }
