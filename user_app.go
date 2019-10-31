@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/cosmos/ledger-go"
+	ledger_go "github.com/cosmos/ledger-go"
 )
 
 const (
@@ -72,21 +72,18 @@ func (ledger *LedgerCosmos) Close() error {
 	return ledger.api.Close()
 }
 
-// VersionIsSupported returns true if the App version is supported by this library
+// CheckVersion returns true if the App version is supported by this library
 func (ledger *LedgerCosmos) CheckVersion(ver VersionInfo) error {
-	version, err := ledger.GetVersion()
-	if err != nil {
-		return err
+
+	for _, minSupportedVersion := range minSupportedVersions {
+		if ver.AppMode == minSupportedVersion.AppMode && ver.Major == minSupportedVersion.Major {
+			if err := CheckVersion(ver, minSupportedVersion); err == nil {
+				return nil
+			}
+		}
 	}
 
-	switch version.Major {
-	case 1:
-		return CheckVersion(ver, VersionInfo{0, 1, 5, 1})
-	case 2:
-		return CheckVersion(ver, VersionInfo{0, 2, 1, 0})
-	default:
-		return fmt.Errorf("App version is not supported")
-	}
+	return fmt.Errorf("App version is not supported")
 }
 
 // GetVersion returns the current version of the Cosmos user app
