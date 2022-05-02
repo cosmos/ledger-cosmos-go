@@ -273,6 +273,6 @@ func Test_UserSign_Fails(t *testing.T) {
 	errMessage := err.Error()
 
 	if errMessage != "Invalid character in JSON string" && errMessage != "Unexpected characters" {
-		assert.Fail(t, "Unexpected error message returned: " + errMessage )
+		assert.Fail(t, "Unexpected error message returned: "+errMessage)
 	}
 }
