@@ -53,20 +53,20 @@ func NewVersionRequiredError(req VersionInfo, ver VersionInfo) error {
 // CheckVersion compares the current version with the required version
 func CheckVersion(ver VersionInfo, req VersionInfo) error {
 	if ver.Major != req.Major {
-		if (ver.Major > req.Major){
+		if ver.Major > req.Major {
 			return nil
 		}
 		return NewVersionRequiredError(req, ver)
 	}
 
 	if ver.Minor != req.Minor {
-		if (ver.Minor > req.Minor) {
+		if ver.Minor > req.Minor {
 			return nil
 		}
 		return NewVersionRequiredError(req, ver)
 	}
 
-	if (ver.Patch >= req.Patch){
+	if ver.Patch >= req.Patch {
 		return nil
 	}
 	return NewVersionRequiredError(req, ver)
@@ -95,7 +95,7 @@ func GetBip32bytesv2(bip44Path []uint32, hardenCount int) ([]byte, error) {
 		return nil, fmt.Errorf("path should contain 5 elements")
 	}
 	for index, element := range bip44Path {
-		pos := index*4
+		pos := index * 4
 		value := element
 		if index < hardenCount {
 			value = 0x80000000 | element
