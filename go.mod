@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/btcsuite/btcd v0.0.0-20190115013929-ed77733ec07d
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.8.0
 	github.com/zondax/ledger-go v0.12.2
 )
 
@@ -20,5 +20,5 @@ require (
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55 // indirect
 	google.golang.org/grpc v1.29.1 // indirect
 	google.golang.org/protobuf v1.23.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
