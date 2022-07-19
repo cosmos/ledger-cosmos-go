@@ -29,8 +29,6 @@ func Test_ValGetVersion(t *testing.T) {
 	}
 	defer validatorApp.Close()
 
-	validatorApp.api.Logging = true
-
 	version, err := validatorApp.GetVersion()
 	require.Nil(t, err, "Detected error")
 	assert.Equal(t, uint8(0x0), version.AppMode, "TESTING MODE NOT ENABLED")
@@ -45,8 +43,6 @@ func Test_ValGetPublicKey(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 	defer validatorApp.Close()
-
-	validatorApp.api.Logging = true
 
 	path := []uint32{44, 118, 0, 0, 0}
 
