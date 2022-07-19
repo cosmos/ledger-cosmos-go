@@ -20,7 +20,7 @@ import (
 	"errors"
 	"math"
 
-	"github.com/cosmos/ledger-go"
+	"github.com/zondax/ledger-go"
 )
 
 const (
@@ -35,13 +35,14 @@ const (
 
 // LedgerCosmos represents a connection to the Cosmos app in a Ledger Nano S device
 type LedgerCosmos struct {
-	api     *ledger_go.Ledger
+	api     ledger_go.LedgerDevice
 	version VersionInfo
 }
 
 // FindLedgerCosmosUserApp finds a Cosmos user app running in a ledger device
 func FindLedgerCosmosUserApp() (_ *LedgerCosmos, rerr error) {
-	ledgerAPI, err := ledger_go.FindLedger()
+	ledgerAdmin := ledger_go.NewLedgerAdmin()
+	ledgerAPI, err := ledgerAdmin.Connect(0)
 	if err != nil {
 		return nil, err
 	}

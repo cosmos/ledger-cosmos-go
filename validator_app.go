@@ -20,7 +20,7 @@ import (
 	"errors"
 	"math"
 
-	"github.com/cosmos/ledger-go"
+	"github.com/zondax/ledger-go"
 )
 
 const (
@@ -36,7 +36,7 @@ const (
 // Validator app
 type LedgerTendermintValidator struct {
 	// Add support for this app
-	api *ledger_go.Ledger
+	api ledger_go.LedgerDevice
 }
 
 // RequiredCosmosUserAppVersion indicates the minimum required version of the Tendermint app
@@ -46,7 +46,8 @@ func RequiredTendermintValidatorAppVersion() VersionInfo {
 
 // FindLedgerCosmosValidatorApp finds a Cosmos validator app running in a ledger device
 func FindLedgerTendermintValidatorApp() (_ *LedgerTendermintValidator, rerr error) {
-	ledgerAPI, err := ledger_go.FindLedger()
+	ledgerAdmin := ledger_go.NewLedgerAdmin()
+	ledgerAPI, err := ledgerAdmin.Connect(0)
 	if err != nil {
 		return nil, err
 	}
