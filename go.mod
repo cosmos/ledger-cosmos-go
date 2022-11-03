@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/btcsuite/btcd v0.0.0-20190115013929-ed77733ec07d
 	github.com/stretchr/testify v1.8.0
-	github.com/zondax/ledger-go v0.12.2
+	github.com/zondax/ledger-go v0.13.0
 )
 
 require (
