@@ -1,5 +1,5 @@
 /*******************************************************************************
-*   (c) 2018 ZondaX GmbH
+*   (c) 2018 - 2022 ZondaX AG
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
+
+	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // Ledger Test Mnemonic: equip will roof matter pink blind book anxiety banner elbow sun young
@@ -170,7 +172,7 @@ func Test_UserPK_HDPaths(t *testing.T) {
 			hex.EncodeToString(pubKey),
 			"Public key 44'/118'/0'/0/%d does not match\n", i)
 
-		_, err = btcec.ParsePubKey(pubKey[:], btcec.S256())
+		_, err = btcec.ParsePubKey(pubKey[:])
 		require.Nil(t, err, "Error parsing public key err: %s\n", err)
 
 	}
@@ -221,13 +223,13 @@ func Test_UserSign(t *testing.T) {
 		return
 	}
 
-	pub2, err := btcec.ParsePubKey(pubKey[:], btcec.S256())
+	pub2, err := btcec.ParsePubKey(pubKey[:])
 	if err != nil {
 		t.Fatalf("[ParsePK] Error: " + err.Error())
 		return
 	}
 
-	sig2, err := btcec.ParseDERSignature(signature[:], btcec.S256())
+	sig2, err := ecdsa.ParseDERSignature(signature[:])
 	if err != nil {
 		t.Fatalf("[ParseSig] Error: " + err.Error())
 		return
