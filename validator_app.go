@@ -39,12 +39,12 @@ type LedgerTendermintValidator struct {
 	api ledger_go.LedgerDevice
 }
 
-// RequiredCosmosUserAppVersion indicates the minimum required version of the Tendermint app
+// RequiredTendermintValidatorAppVersion indicates the minimum required version of the Tendermint app
 func RequiredTendermintValidatorAppVersion() VersionInfo {
 	return VersionInfo{0, 0, 5, 0}
 }
 
-// FindLedgerCosmosValidatorApp finds a Cosmos validator app running in a ledger device
+// FindLedgerTendermintValidatorApp finds a Cosmos validator app running in a ledger device
 func FindLedgerTendermintValidatorApp() (_ *LedgerTendermintValidator, rerr error) {
 	ledgerAdmin := ledger_go.NewLedgerAdmin()
 	ledgerAPI, err := ledgerAdmin.Connect(0)
@@ -124,7 +124,7 @@ func (ledger *LedgerTendermintValidator) GetPublicKeyED25519(bip32Path []uint32)
 	return response, nil
 }
 
-// SignSECP256K1 signs a message/vote using the Tendermint validator app
+// SignED25519 signs a message/vote using the Tendermint validator app
 func (ledger *LedgerTendermintValidator) SignED25519(bip32Path []uint32, message []byte) ([]byte, error) {
 	var packetIndex byte = 1
 	var packetCount = 1 + byte(math.Ceil(float64(len(message))/float64(validatorMessageChunkSize)))
