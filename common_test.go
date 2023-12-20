@@ -1,5 +1,5 @@
 /*******************************************************************************
-*   (c) 2018 - 2022 Zondax AG
+*   (c) 2018 - 2023 Zondax AG
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -18,20 +18,24 @@ package ledger_cosmos_go
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_PrintVersion(t *testing.T) {
-	reqVersion := VersionInfo{0, 1, 2, 3}
+	reqVersion := VersionResponse{0, 1, 2, 3, 0, 0x12345678}
 	s := fmt.Sprintf("%v", reqVersion)
 	assert.Equal(t, "1.2.3", s)
+
+	reqVersion = VersionResponse{0, 0, 0, 0, 0, 0}
+	s = fmt.Sprintf("%v", reqVersion)
+	assert.Equal(t, "0.0.0", s)
 }
 
-func Test_PathGeneration0(t *testing.T) {
-	bip32Path := []uint32{44, 100, 0, 0, 0}
-
-	pathBytes, err := GetBip32bytesv1(bip32Path, 0)
+func Test_SerializePath0(t *testing.T) {
+	path := "m/44'/100'/0/0/0"
+	pathBytes, err := serializePath(path)
 
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
@@ -41,21 +45,36 @@ func Test_PathGeneration0(t *testing.T) {
 
 	assert.Equal(
 		t,
-		41,
+		20,
 		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 41)
+		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 20)
 
 	assert.Equal(
 		t,
-		"052c000000640000000000000000000000000000000000000000000000000000000000000000000000",
+		"2c00008064000080000000000000000000000000",
 		fmt.Sprintf("%x", pathBytes),
 		"Unexpected PathBytes\n")
 }
 
-func Test_PathGeneration2(t *testing.T) {
-	bip32Path := []uint32{44, 118, 0, 0, 0}
+func Test_SerializePath_EmptyString(t *testing.T) {
+	path := ""
+	pathBytes, err := serializePath(path)
 
-	pathBytes, err := GetBip32bytesv1(bip32Path, 2)
+	assert.NotNil(t, err, "Expected error for empty path, got nil")
+	assert.Nil(t, pathBytes, "Expected nil for pathBytes, got non-nil value")
+}
+
+func Test_SerializePath_InvalidPath(t *testing.T) {
+	path := "invalid_path"
+	pathBytes, err := serializePath(path)
+
+	assert.NotNil(t, err, "Expected error for invalid path, got nil")
+	assert.Nil(t, pathBytes, "Expected nil for pathBytes, got non-nil value")
+}
+
+func Test_SerializePath1(t *testing.T) {
+	path := "m/44'/118'/0'/0/0"
+	pathBytes, err := serializePath(path)
 
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
@@ -65,21 +84,20 @@ func Test_PathGeneration2(t *testing.T) {
 
 	assert.Equal(
 		t,
-		41,
+		20,
 		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 41)
+		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 20)
 
 	assert.Equal(
 		t,
-		"052c000080760000800000000000000000000000000000000000000000000000000000000000000000",
+		"2c00008076000080000000800000000000000000",
 		fmt.Sprintf("%x", pathBytes),
 		"Unexpected PathBytes\n")
 }
 
-func Test_PathGeneration3(t *testing.T) {
-	bip32Path := []uint32{44, 118, 0, 0, 0}
-
-	pathBytes, err := GetBip32bytesv1(bip32Path, 3)
+func Test_SerializePath2(t *testing.T) {
+	path := "m/44'/60'/0'/0/0"
+	pathBytes, err := serializePath(path)
 
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
@@ -89,85 +107,75 @@ func Test_PathGeneration3(t *testing.T) {
 
 	assert.Equal(
 		t,
-		41,
+		20,
 		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 41)
+		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 20)
 
 	assert.Equal(
 		t,
-		"052c000080760000800000008000000000000000000000000000000000000000000000000000000000",
+		"2c0000803c000080000000800000000000000000",
 		fmt.Sprintf("%x", pathBytes),
 		"Unexpected PathBytes\n")
 }
 
-func Test_PathGeneration0v2(t *testing.T) {
-	bip32Path := []uint32{44, 100, 0, 0, 0}
-
-	pathBytes, err := GetBip32bytesv2(bip32Path, 0)
+func Test_SerializeHRP0(t *testing.T) {
+	hrp := "cosmos"
+	hrpBytes, err := serializeHRP(hrp)
 
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
-	fmt.Printf("Path: %x\n", pathBytes)
+	fmt.Printf("HRP: %x\n", hrpBytes)
 
 	assert.Equal(
 		t,
-		40,
-		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 40)
+		6,
+		len(hrpBytes),
+		"hrpBytes has wrong length: %x, expected length: %x\n", hrpBytes, 6)
 
 	assert.Equal(
 		t,
-		"2c000000640000000000000000000000000000000000000000000000000000000000000000000000",
-		fmt.Sprintf("%x", pathBytes),
-		"Unexpected PathBytes\n")
+		"636f736d6f73",
+		fmt.Sprintf("%x", hrpBytes),
+		"Unexpected HRPBytes\n")
 }
 
-func Test_PathGeneration2v2(t *testing.T) {
-	bip32Path := []uint32{44, 118, 0, 0, 0}
+func Test_SerializeHRP_EmptyString(t *testing.T) {
+	hrp := ""
+	hrpBytes, err := serializeHRP(hrp)
 
-	pathBytes, err := GetBip32bytesv2(bip32Path, 2)
+	assert.NotNil(t, err, "Expected error for empty hrp, got nil")
+	assert.Nil(t, hrpBytes, "Expected nil for hrpBytes, got non-nil value")
+}
+
+func Test_SerializeHRP_LongString(t *testing.T) {
+	hrp := "a_very_long_hrp_that_exceeds_the_maximum_length"
+	hrpBytes, err := serializeHRP(hrp)
+
+	assert.NotNil(t, err, "Expected error for long hrp, got nil")
+	assert.Nil(t, hrpBytes, "Expected nil for hrpBytes, got non-nil value")
+}
+
+func Test_SerializeHRP1(t *testing.T) {
+	hrp := "evmos"
+	hrpBytes, err := serializeHRP(hrp)
 
 	if err != nil {
 		t.Fatalf("Detected error, err: %s\n", err.Error())
 	}
 
-	fmt.Printf("Path: %x\n", pathBytes)
+	fmt.Printf("HRP: %x\n", hrpBytes)
 
 	assert.Equal(
 		t,
-		40,
-		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 40)
+		5,
+		len(hrpBytes),
+		"hrpBytes has wrong length: %x, expected length: %x\n", hrpBytes, 5)
 
 	assert.Equal(
 		t,
-		"2c000080760000800000000000000000000000000000000000000000000000000000000000000000",
-		fmt.Sprintf("%x", pathBytes),
-		"Unexpected PathBytes\n")
-}
-
-func Test_PathGeneration3v2(t *testing.T) {
-	bip32Path := []uint32{44, 118, 0, 0, 0}
-
-	pathBytes, err := GetBip32bytesv2(bip32Path, 3)
-
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
-	}
-
-	fmt.Printf("Path: %x\n", pathBytes)
-
-	assert.Equal(
-		t,
-		40,
-		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 40)
-
-	assert.Equal(
-		t,
-		"2c000080760000800000008000000000000000000000000000000000000000000000000000000000",
-		fmt.Sprintf("%x", pathBytes),
-		"Unexpected PathBytes\n")
+		"65766d6f73",
+		fmt.Sprintf("%x", hrpBytes),
+		"Unexpected HRPBytes\n")
 }
