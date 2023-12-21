@@ -1,6 +1,6 @@
 module github.com/cosmos/ledger-cosmos-go
 
-go 1.18
+go 1.21
 
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2
