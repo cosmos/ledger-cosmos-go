@@ -330,7 +330,7 @@ func (ledger *LedgerCosmos) getAddressPubKeySECP256K1(bip32Path []uint32, hrp st
 	}
 
 	pubkey = response[0:33]
-	addr = string(response[33:len(response)])
+	addr = string(response[33:])
 
 	return pubkey, addr, err
 }

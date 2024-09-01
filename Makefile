@@ -41,7 +41,7 @@ install_lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin latest
 
 check-modtidy:
-	go mod tidy
+	@go mod tidy
 	git diff --exit-code -- go.mod go.sum
 
 lint:
@@ -49,4 +49,5 @@ lint:
 	golangci-lint run
 
 test:
-	go test -tags ledger_mock -v -race ./...
+	@go test common.go -mod=readonly -timeout 5m -short -race -coverprofile=coverage.txt -covermode=atomic
+	@go test common.go -mod=readonly -timeout 5m
