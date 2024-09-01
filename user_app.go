@@ -1,5 +1,5 @@
 /*******************************************************************************
-*   (c) 2018 - 2022 ZondaX AG
+*   (c) Zondax AG
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -330,7 +330,7 @@ func (ledger *LedgerCosmos) getAddressPubKeySECP256K1(bip32Path []uint32, hrp st
 	}
 
 	pubkey = response[0:33]
-	addr = string(response[33:len(response)])
+	addr = string(response[33:])
 
 	return pubkey, addr, err
 }

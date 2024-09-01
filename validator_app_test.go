@@ -1,5 +1,5 @@
 /*******************************************************************************
-*   (c) 2018 - 2022 ZondaX AG
+*   (c) Zondax AG
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -17,15 +17,16 @@
 package ledger_cosmos_go
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func Test_ValGetVersion(t *testing.T) {
 	validatorApp, err := FindLedgerTendermintValidatorApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer validatorApp.Close()
 
@@ -40,7 +41,7 @@ func Test_ValGetVersion(t *testing.T) {
 func Test_ValGetPublicKey(t *testing.T) {
 	validatorApp, err := FindLedgerTendermintValidatorApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 	defer validatorApp.Close()
 
