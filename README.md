@@ -1,10 +1,6 @@
 # ledger-cosmos-go
 
-[![Test](https://github.com/cosmos/ledger-cosmos-go/actions/workflows/test.yml/badge.svg)](https://github.com/cosmos/ledger-cosmos-go/actions/workflows/test.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![GithubActions](https://github.com/zondax/ledger-go/actions/workflows/main.yml/badge.svg)](https://github.com/Zondax/ledger-go/blob/main/.github/workflows/main.yml)
 [![Build status](https://ci.appveyor.com/api/projects/status/ovpfx35t289n3403?svg=true)](https://ci.appveyor.com/project/cosmos/ledger-cosmos-go)
 
-This project is work in progress. Some aspects are subject to change.
-
-# Get source
-Apart from cloning, be sure you install dep dependency management tool
-https://github.com/golang/dep
