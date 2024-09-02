@@ -3,7 +3,7 @@ module github.com/cosmos/ledger-cosmos-go
 go 1.21
 
 require (
-	github.com/btcsuite/btcd/btcec/v2 v2.3.2
+	github.com/btcsuite/btcd/btcec/v2 v2.3.4
 	github.com/stretchr/testify v1.8.1
 	github.com/zondax/ledger-go v0.14.3
 )
