@@ -1,19 +1,29 @@
 name: Test
+
 on:
+  # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches:
-      - master
+      - main
   pull_request:
+    branches:
+      - main
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
 
   Test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: '1.18' 
+          go-version: '1.21'
+      - name: Build
+        run: |
+          go build
       - name: test & coverage report creation
         run: |
           go test common.go -mod=readonly -timeout 5m -short -race -coverprofile=coverage.txt -covermode=atomic

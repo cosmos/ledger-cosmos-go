@@ -1,5 +1,5 @@
 /*******************************************************************************
-*   (c) 2018 - 2022 ZondaX AG
+*   (c) Zondax AG
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import (
 func Test_UserFindLedger(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err)
 	}
 
 	assert.NotNil(t, userApp)
@@ -44,7 +44,7 @@ func Test_UserFindLedger(t *testing.T) {
 func Test_UserGetVersion(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err)
 	}
 	defer userApp.Close()
 
@@ -61,7 +61,7 @@ func Test_UserGetVersion(t *testing.T) {
 func Test_UserGetPublicKey(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err)
 	}
 	defer userApp.Close()
 
@@ -85,7 +85,7 @@ func Test_UserGetPublicKey(t *testing.T) {
 func Test_GetAddressPubKeySECP256K1_Zero(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err)
 	}
 	defer userApp.Close()
 
@@ -109,7 +109,7 @@ func Test_GetAddressPubKeySECP256K1_Zero(t *testing.T) {
 func Test_GetAddressPubKeySECP256K1(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err)
 	}
 	defer userApp.Close()
 
@@ -133,7 +133,7 @@ func Test_GetAddressPubKeySECP256K1(t *testing.T) {
 func Test_UserPK_HDPaths(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err)
 	}
 	defer userApp.Close()
 
@@ -200,7 +200,7 @@ func getDummyTx() []byte {
 func Test_UserSign(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err)
 	}
 	defer userApp.Close()
 
@@ -219,26 +219,26 @@ func Test_UserSign(t *testing.T) {
 	}
 
 	if err != nil {
-		t.Fatalf("[GetPK] Error: " + err.Error())
+		t.Fatalf("[GetPK] Error: %s", err.Error())
 		return
 	}
 
 	pub2, err := btcec.ParsePubKey(pubKey[:])
 	if err != nil {
-		t.Fatalf("[ParsePK] Error: " + err.Error())
+		t.Fatalf("[ParsePK] Error: %s", err.Error())
 		return
 	}
 
 	sig2, err := ecdsa.ParseDERSignature(signature[:])
 	if err != nil {
-		t.Fatalf("[ParseSig] Error: " + err.Error())
+		t.Fatalf("[ParseSig] Error: %s", err.Error())
 		return
 	}
 
 	hash := sha256.Sum256(message)
 	verified := sig2.Verify(hash[:], pub2)
 	if !verified {
-		t.Fatalf("[VerifySig] Error verifying signature: " + err.Error())
+		t.Fatalf("[VerifySig] Error verifying signature: %s", err.Error())
 		return
 	}
 }
@@ -246,7 +246,7 @@ func Test_UserSign(t *testing.T) {
 func Test_UserSign_Fails(t *testing.T) {
 	userApp, err := FindLedgerCosmosUserApp()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%v", err)
 	}
 	defer userApp.Close()
 
