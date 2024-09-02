@@ -292,8 +292,8 @@ func (ledger *LedgerCosmos) signv2(bip32Path []uint32, transaction []byte, p2 by
 // GetAddressPubKeySECP256K1 returns the pubkey (compressed) and address (bech(
 // this command requires user confirmation in the device
 func (ledger *LedgerCosmos) getAddressPubKeySECP256K1(bip32Path []uint32, hrp string, requireConfirmation bool) (pubkey []byte, addr string, err error) {
-	if len(hrp) > 83 {
-		return nil, "", errors.New("hrp len should be <10")
+	if len(hrp) == 0 || len(hrp) > 83 {
+		return nil, "", errors.New("hrp length must be between 1 and 83 characters")
 	}
 
 	hrpBytes := []byte(hrp)
