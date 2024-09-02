@@ -21,7 +21,7 @@ mod-clean:
 	go clean -modcache
 
 mod-update: mod-clean
-	@go get -u ./...
+	@go get -u -t all
 	@go mod tidy
 
 generate: mod-tidy
