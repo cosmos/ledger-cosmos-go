@@ -51,25 +51,11 @@ func NewVersionRequiredError(req VersionInfo, ver VersionInfo) error {
 }
 
 // CheckVersion compares the current version with the required version
-func CheckVersion(ver VersionInfo, req VersionInfo) error {
-	if ver.Major != req.Major {
-		if ver.Major > req.Major {
-			return nil
-		}
-		return NewVersionRequiredError(req, ver)
-	}
-
-	if ver.Minor != req.Minor {
-		if ver.Minor > req.Minor {
-			return nil
-		}
-		return NewVersionRequiredError(req, ver)
-	}
-
-	if ver.Patch >= req.Patch {
+func CheckVersion(ver *VersionInfo, req VersionInfo) error {
+	if ver.Major > req.Major || (ver.Major == req.Major && (ver.Minor > req.Minor || (ver.Minor == req.Minor && ver.Patch >= req.Patch))) {
 		return nil
 	}
-	return NewVersionRequiredError(req, ver)
+	return NewVersionRequiredError(req, *ver)
 }
 
 func GetBip32bytesv1(bip32Path []uint32, hardenCount int) ([]byte, error) {
@@ -89,18 +75,7 @@ func GetBip32bytesv1(bip32Path []uint32, hardenCount int) ([]byte, error) {
 	return message, nil
 }
 
-func GetBip32bytesv2(bip44Path []uint32, hardenCount int) ([]byte, error) {
-	message := make([]byte, 20)
-	if len(bip44Path) != 5 {
-		return nil, fmt.Errorf("path should contain 5 elements")
-	}
-	for index, element := range bip44Path {
-		pos := index * 4
-		value := element
-		if index < hardenCount {
-			value = 0x80000000 | element
-		}
-		binary.LittleEndian.PutUint32(message[pos:], value)
-	}
-	return message, nil
+func invalidHRPByte(b byte) bool {
+	// https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki
+	return b < 33 || b > 126
 }

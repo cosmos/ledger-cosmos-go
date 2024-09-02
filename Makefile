@@ -49,5 +49,6 @@ lint:
 	golangci-lint run
 
 test:
-	@go test common.go -mod=readonly -timeout 5m -short -race -coverprofile=coverage.txt -covermode=atomic
-	@go test common.go -mod=readonly -timeout 5m
+	@go test ./... -mod=readonly -timeout 5m -short -race -coverprofile=coverage.txt -covermode=atomic
+	@go test ./... -mod=readonly -timeout 5m
+

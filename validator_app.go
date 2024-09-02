@@ -18,9 +18,10 @@ package ledger_cosmos_go
 
 import (
 	"errors"
+	"fmt"
 	"math"
 
-	"github.com/zondax/ledger-go"
+	ledger_go "github.com/zondax/ledger-go"
 )
 
 const (
@@ -33,23 +34,34 @@ const (
 	validatorMessageChunkSize = 250
 )
 
+// LedgerDevice is an interface for the ledger device
+type LedgerDevice interface {
+	Exchange([]byte) ([]byte, error)
+	Close() error
+}
+
 // Validator app
 type LedgerTendermintValidator struct {
-	// Add support for this app
-	api ledger_go.LedgerDevice
+	api LedgerDevice
 }
 
-// RequiredCosmosUserAppVersion indicates the minimum required version of the Tendermint app
-func RequiredTendermintValidatorAppVersion() VersionInfo {
-	return VersionInfo{0, 0, 5, 0}
+// CheckVersion returns an error if the App version is not supported by this library
+func (ledger *LedgerTendermintValidator) CheckVersion() error {
+	version, err := ledger.GetVersion()
+	if err != nil {
+		return err
+	}
+
+	requiredVersion := VersionInfo{0, 0, 5, 0}
+	return CheckVersion(version, requiredVersion)
 }
 
-// FindLedgerCosmosValidatorApp finds a Cosmos validator app running in a ledger device
+// FindLedgerTendermintValidatorApp finds a Cosmos validator app running in a ledger device
 func FindLedgerTendermintValidatorApp() (_ *LedgerTendermintValidator, rerr error) {
 	ledgerAdmin := ledger_go.NewLedgerAdmin()
 	ledgerAPI, err := ledgerAdmin.Connect(0)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to ledger device: %w", err)
 	}
 
 	defer func() {
@@ -58,21 +70,19 @@ func FindLedgerTendermintValidatorApp() (_ *LedgerTendermintValidator, rerr erro
 		}
 	}()
 
-	ledgerCosmosValidatorApp := &LedgerTendermintValidator{ledgerAPI}
-	appVersion, err := ledgerCosmosValidatorApp.GetVersion()
+	app := &LedgerTendermintValidator{api: ledgerAPI}
 	if err != nil {
-		if err.Error() == "[APDU_CODE_CLA_NOT_SUPPORTED] Class not supported" {
-			err = errors.New("are you sure the Tendermint Validator app is open?")
+		if err.Error() == "[APDU_CODE_CLA_NOT_SUPPORTED] class not supported" {
+			err = errors.New("please ensure the Tendermint Validator app is open")
 		}
-		return nil, err
+		return nil, fmt.Errorf("failed to get app version: %w", err)
 	}
 
-	req := RequiredTendermintValidatorAppVersion()
-	if err := CheckVersion(*appVersion, req); err != nil {
-		return nil, err
+	if err := app.CheckVersion(); err != nil {
+		return nil, fmt.Errorf("app version check failed: %w", err)
 	}
 
-	return ledgerCosmosValidatorApp, err
+	return app, err
 }
 
 // Close closes a connection with the Cosmos user app
@@ -145,8 +155,8 @@ func (ledger *LedgerTendermintValidator) SignED25519(bip32Path []uint32, message
 				validatorINSSignED25519,
 				packetIndex,
 				packetCount,
-				byte(len(pathBytes))}
-
+				byte(len(pathBytes)),
+			}
 			apduMessage = append(header, pathBytes...)
 		} else {
 			if len(message) < validatorMessageChunkSize {
@@ -157,8 +167,8 @@ func (ledger *LedgerTendermintValidator) SignED25519(bip32Path []uint32, message
 				validatorINSSignED25519,
 				packetIndex,
 				packetCount,
-				byte(chunk)}
-
+				byte(chunk),
+			}
 			apduMessage = append(header, message[:chunk]...)
 		}
 
@@ -172,7 +182,6 @@ func (ledger *LedgerTendermintValidator) SignED25519(bip32Path []uint32, message
 			message = message[chunk:]
 		}
 		packetIndex++
-
 	}
 	return finalResponse, nil
 }

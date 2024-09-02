@@ -18,8 +18,10 @@ package ledger_cosmos_go
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_PrintVersion(t *testing.T) {
@@ -28,146 +30,93 @@ func Test_PrintVersion(t *testing.T) {
 	assert.Equal(t, "1.2.3", s)
 }
 
-func Test_PathGeneration0(t *testing.T) {
-	bip32Path := []uint32{44, 100, 0, 0, 0}
-
-	pathBytes, err := GetBip32bytesv1(bip32Path, 0)
-
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
+func Test_PathGeneration(t *testing.T) {
+	tests := []struct {
+		name         string
+		bip32Path    []uint32
+		hardenCount  int
+		expectedPath string
+	}{
+		{
+			name:         "PathGeneration0",
+			bip32Path:    []uint32{44, 100, 0, 0, 0},
+			hardenCount:  0,
+			expectedPath: "052c000000640000000000000000000000000000000000000000000000000000000000000000000000",
+		},
+		{
+			name:         "PathGeneration2",
+			bip32Path:    []uint32{44, 118, 0, 0, 0},
+			hardenCount:  2,
+			expectedPath: "052c000080760000800000000000000000000000000000000000000000000000000000000000000000",
+		},
+		{
+			name:         "PathGeneration3",
+			bip32Path:    []uint32{44, 118, 0, 0, 0},
+			hardenCount:  3,
+			expectedPath: "052c000080760000800000008000000000000000000000000000000000000000000000000000000000",
+		},
 	}
 
-	fmt.Printf("Path: %x\n", pathBytes)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pathBytes, err := GetBip32bytesv1(tt.bip32Path, tt.hardenCount)
+			require.NoError(t, err, "Detected error")
 
-	assert.Equal(
-		t,
-		41,
-		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 41)
+			fmt.Printf("Path: %x\n", pathBytes)
 
-	assert.Equal(
-		t,
-		"052c000000640000000000000000000000000000000000000000000000000000000000000000000000",
-		fmt.Sprintf("%x", pathBytes),
-		"Unexpected PathBytes\n")
+			assert.Equal(t, 41, len(pathBytes), "PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 41)
+			assert.Equal(t, tt.expectedPath, fmt.Sprintf("%x", pathBytes), "Unexpected PathBytes\n")
+		})
+	}
 }
 
-func Test_PathGeneration2(t *testing.T) {
-	bip32Path := []uint32{44, 118, 0, 0, 0}
-
-	pathBytes, err := GetBip32bytesv1(bip32Path, 2)
-
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
+func Test_CheckVersion(t *testing.T) {
+	tests := []struct {
+		name            string
+		currentVersion  *VersionInfo
+		requiredVersion VersionInfo
+		expectError     bool
+	}{
+		{
+			name:            "VersionCheckPass",
+			currentVersion:  &VersionInfo{0, 2, 1, 0},
+			requiredVersion: VersionInfo{0, 2, 0, 0},
+			expectError:     false,
+		},
+		{
+			name:            "VersionCheckFail",
+			currentVersion:  &VersionInfo{0, 2, 1, 0},
+			requiredVersion: VersionInfo{0, 2, 1, 1},
+			expectError:     true,
+		},
 	}
 
-	fmt.Printf("Path: %x\n", pathBytes)
-
-	assert.Equal(
-		t,
-		41,
-		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 41)
-
-	assert.Equal(
-		t,
-		"052c000080760000800000000000000000000000000000000000000000000000000000000000000000",
-		fmt.Sprintf("%x", pathBytes),
-		"Unexpected PathBytes\n")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := CheckVersion(tt.currentVersion, tt.requiredVersion)
+			if tt.expectError {
+				require.Error(t, err, "Version check passed when it should have failed")
+			} else {
+				require.NoError(t, err, "Version check failed when it should have passed")
+			}
+		})
+	}
 }
 
-func Test_PathGeneration3(t *testing.T) {
-	bip32Path := []uint32{44, 118, 0, 0, 0}
-
-	pathBytes, err := GetBip32bytesv1(bip32Path, 3)
-
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
+func Test_InvalidHRPByte(t *testing.T) {
+	tests := []struct {
+		byteValue     byte
+		expectInvalid bool
+	}{
+		{32, true},
+		{33, false},
+		{126, false},
+		{127, true},
 	}
 
-	fmt.Printf("Path: %x\n", pathBytes)
-
-	assert.Equal(
-		t,
-		41,
-		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 41)
-
-	assert.Equal(
-		t,
-		"052c000080760000800000008000000000000000000000000000000000000000000000000000000000",
-		fmt.Sprintf("%x", pathBytes),
-		"Unexpected PathBytes\n")
-}
-
-func Test_PathGeneration0v2(t *testing.T) {
-	bip32Path := []uint32{44, 100, 0, 0, 0}
-
-	pathBytes, err := GetBip32bytesv2(bip32Path, 0)
-
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("ByteValue%d", tt.byteValue), func(t *testing.T) {
+			assert.Equal(t, tt.expectInvalid, invalidHRPByte(tt.byteValue), "Unexpected result for byte %d", tt.byteValue)
+		})
 	}
-
-	fmt.Printf("Path: %x\n", pathBytes)
-
-	assert.Equal(
-		t,
-		40,
-		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 40)
-
-	assert.Equal(
-		t,
-		"2c000000640000000000000000000000000000000000000000000000000000000000000000000000",
-		fmt.Sprintf("%x", pathBytes),
-		"Unexpected PathBytes\n")
-}
-
-func Test_PathGeneration2v2(t *testing.T) {
-	bip32Path := []uint32{44, 118, 0, 0, 0}
-
-	pathBytes, err := GetBip32bytesv2(bip32Path, 2)
-
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
-	}
-
-	fmt.Printf("Path: %x\n", pathBytes)
-
-	assert.Equal(
-		t,
-		40,
-		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 40)
-
-	assert.Equal(
-		t,
-		"2c000080760000800000000000000000000000000000000000000000000000000000000000000000",
-		fmt.Sprintf("%x", pathBytes),
-		"Unexpected PathBytes\n")
-}
-
-func Test_PathGeneration3v2(t *testing.T) {
-	bip32Path := []uint32{44, 118, 0, 0, 0}
-
-	pathBytes, err := GetBip32bytesv2(bip32Path, 3)
-
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
-	}
-
-	fmt.Printf("Path: %x\n", pathBytes)
-
-	assert.Equal(
-		t,
-		40,
-		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 40)
-
-	assert.Equal(
-		t,
-		"2c000080760000800000008000000000000000000000000000000000000000000000000000000000",
-		fmt.Sprintf("%x", pathBytes),
-		"Unexpected PathBytes\n")
 }

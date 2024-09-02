@@ -23,15 +23,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_ValGetVersion(t *testing.T) {
+func setupValidatorApp(t *testing.T) *LedgerTendermintValidator {
 	validatorApp, err := FindLedgerTendermintValidatorApp()
-	if err != nil {
-		t.Fatalf("%s", err.Error())
-	}
-	defer validatorApp.Close()
+	require.NoError(t, err, "Failed to find Ledger Tendermint Validator App")
+	t.Cleanup(func() { validatorApp.Close() })
+	return validatorApp
+}
+
+func Test_ValGetVersion(t *testing.T) {
+	validatorApp := setupValidatorApp(t)
 
 	version, err := validatorApp.GetVersion()
-	require.Nil(t, err, "Detected error")
+	require.NoError(t, err, "Detected error")
 	assert.Equal(t, uint8(0x0), version.AppMode, "TESTING MODE NOT ENABLED")
 	assert.Equal(t, uint8(0x0), version.Major, "Wrong Major version")
 	assert.Equal(t, uint8(0x9), version.Minor, "Wrong Minor version")
@@ -39,25 +42,16 @@ func Test_ValGetVersion(t *testing.T) {
 }
 
 func Test_ValGetPublicKey(t *testing.T) {
-	validatorApp, err := FindLedgerTendermintValidatorApp()
-	if err != nil {
-		t.Fatalf("%s", err.Error())
-	}
-	defer validatorApp.Close()
+	validatorApp := setupValidatorApp(t)
 
 	path := []uint32{44, 118, 0, 0, 0}
 
 	for i := 1; i < 10; i++ {
 		pubKey, err := validatorApp.GetPublicKeyED25519(path)
-		require.Nil(t, err, "Detected error, err: %s\n", err)
+		require.NoError(t, err, "Detected error")
 
-		assert.Equal(
-			t,
-			32,
-			len(pubKey),
-			"Public key has wrong length: %x, expected length: %x\n", pubKey, 32)
+		assert.Equal(t, 32, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 32)
 	}
-
 }
 
 func Test_ValSignED25519(t *testing.T) {

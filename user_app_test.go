@@ -31,25 +31,24 @@ import (
 
 // Ledger Test Mnemonic: equip will roof matter pink blind book anxiety banner elbow sun young
 
-func Test_UserFindLedger(t *testing.T) {
+func setupUserApp(t *testing.T) *LedgerCosmos {
 	userApp, err := FindLedgerCosmosUserApp()
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
+	require.NoError(t, err, "Failed to find Ledger Cosmos User App")
+	assert.NotNil(t, userApp, "User App should not be nil")
+	return userApp
+}
 
-	assert.NotNil(t, userApp)
+func Test_UserFindLedger(t *testing.T) {
+	userApp := setupUserApp(t)
 	defer userApp.Close()
 }
 
 func Test_UserGetVersion(t *testing.T) {
-	userApp, err := FindLedgerCosmosUserApp()
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
+	userApp := setupUserApp(t)
 	defer userApp.Close()
 
 	version, err := userApp.GetVersion()
-	require.Nil(t, err, "Detected error")
+	require.NoError(t, err, "Failed to get version")
 	fmt.Println(version)
 
 	assert.Equal(t, uint8(0x0), version.AppMode, "TESTING MODE ENABLED!!")
@@ -59,82 +58,65 @@ func Test_UserGetVersion(t *testing.T) {
 }
 
 func Test_UserGetPublicKey(t *testing.T) {
-	userApp, err := FindLedgerCosmosUserApp()
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
+	userApp := setupUserApp(t)
 	defer userApp.Close()
 
 	path := []uint32{44, 118, 5, 0, 21}
 
 	pubKey, err := userApp.GetPublicKeySECP256K1(path)
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
-	}
+	require.NoError(t, err, "Failed to get public key")
 
-	assert.Equal(t, 33, len(pubKey),
-		"Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
+	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 33)
 	fmt.Printf("PUBLIC KEY: %x\n", pubKey)
 
-	assert.Equal(t,
-		"03cb5a33c61595206294140c45efa8a817533e31aa05ea18343033a0732a677005",
-		hex.EncodeToString(pubKey),
-		"Unexpected pubkey")
+	expectedPubKey := "03cb5a33c61595206294140c45efa8a817533e31aa05ea18343033a0732a677005"
+	assert.Equal(t, expectedPubKey, hex.EncodeToString(pubKey), "Unexpected pubkey")
 }
 
 func Test_GetAddressPubKeySECP256K1_Zero(t *testing.T) {
-	userApp, err := FindLedgerCosmosUserApp()
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
+	userApp := setupUserApp(t)
 	defer userApp.Close()
 
 	hrp := "cosmos"
 	path := []uint32{44, 118, 0, 0, 0}
 
 	pubKey, addr, err := userApp.GetAddressPubKeySECP256K1(path, hrp)
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
-	}
+	require.NoError(t, err, "Failed to get address and public key")
 
 	fmt.Printf("PUBLIC KEY : %x\n", pubKey)
 	fmt.Printf("BECH32 ADDR: %s\n", addr)
 
-	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
+	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 33)
 
-	assert.Equal(t, "034fef9cd7c4c63588d3b03feb5281b9d232cba34d6f3d71aee59211ffbfe1fe87", hex.EncodeToString(pubKey), "Unexpected pubkey")
-	assert.Equal(t, "cosmos1w34k53py5v5xyluazqpq65agyajavep2rflq6h", addr, "Unexpected addr")
+	expectedPubKey := "034fef9cd7c4c63588d3b03feb5281b9d232cba34d6f3d71aee59211ffbfe1fe87"
+	expectedAddr := "cosmos1w34k53py5v5xyluazqpq65agyajavep2rflq6h"
+	assert.Equal(t, expectedPubKey, hex.EncodeToString(pubKey), "Unexpected pubkey")
+	assert.Equal(t, expectedAddr, addr, "Unexpected addr")
 }
 
 func Test_GetAddressPubKeySECP256K1(t *testing.T) {
-	userApp, err := FindLedgerCosmosUserApp()
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
+	userApp := setupUserApp(t)
 	defer userApp.Close()
 
 	hrp := "cosmos"
 	path := []uint32{44, 118, 5, 0, 21}
 
 	pubKey, addr, err := userApp.GetAddressPubKeySECP256K1(path, hrp)
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
-	}
+	require.NoError(t, err, "Failed to get address and public key")
 
 	fmt.Printf("PUBLIC KEY : %x\n", pubKey)
 	fmt.Printf("BECH32 ADDR: %s\n", addr)
 
-	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
+	assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 33)
 
-	assert.Equal(t, "03cb5a33c61595206294140c45efa8a817533e31aa05ea18343033a0732a677005", hex.EncodeToString(pubKey), "Unexpected pubkey")
-	assert.Equal(t, "cosmos162zm3k8mc685592d7vej2lxrp58mgmkcec76d6", addr, "Unexpected addr")
+	expectedPubKey := "03cb5a33c61595206294140c45efa8a817533e31aa05ea18343033a0732a677005"
+	expectedAddr := "cosmos162zm3k8mc685592d7vej2lxrp58mgmkcec76d6"
+	assert.Equal(t, expectedPubKey, hex.EncodeToString(pubKey), "Unexpected pubkey")
+	assert.Equal(t, expectedAddr, addr, "Unexpected addr")
 }
 
 func Test_UserPK_HDPaths(t *testing.T) {
-	userApp, err := FindLedgerCosmosUserApp()
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
+	userApp := setupUserApp(t)
 	defer userApp.Close()
 
 	path := []uint32{44, 118, 0, 0, 0}
@@ -156,25 +138,13 @@ func Test_UserPK_HDPaths(t *testing.T) {
 		path[4] = i
 
 		pubKey, err := userApp.GetPublicKeySECP256K1(path)
-		if err != nil {
-			t.Fatalf("Detected error, err: %s\n", err.Error())
-		}
+		require.NoError(t, err, "Failed to get public key for path 44'/118'/0'/0/%d", i)
 
-		assert.Equal(
-			t,
-			33,
-			len(pubKey),
-			"Public key has wrong length: %x, expected length: %x\n", pubKey, 65)
-
-		assert.Equal(
-			t,
-			expected[i],
-			hex.EncodeToString(pubKey),
-			"Public key 44'/118'/0'/0/%d does not match\n", i)
+		assert.Equal(t, 33, len(pubKey), "Public key has wrong length: %x, expected length: %x\n", pubKey, 33)
+		assert.Equal(t, expected[i], hex.EncodeToString(pubKey), "Public key 44'/118'/0'/0/%d does not match\n", i)
 
 		_, err = btcec.ParsePubKey(pubKey[:])
-		require.Nil(t, err, "Error parsing public key err: %s\n", err)
-
+		require.NoError(t, err, "Error parsing public key for path 44'/118'/0'/0/%d", i)
 	}
 }
 
@@ -198,56 +168,32 @@ func getDummyTx() []byte {
 }
 
 func Test_UserSign(t *testing.T) {
-	userApp, err := FindLedgerCosmosUserApp()
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
+	userApp := setupUserApp(t)
 	defer userApp.Close()
 
 	path := []uint32{44, 118, 0, 0, 5}
 
 	message := getDummyTx()
 	signature, err := userApp.SignSECP256K1(path, message, 0)
-	if err != nil {
-		t.Fatalf("[Sign] Error: %s\n", err.Error())
-	}
+	require.NoError(t, err, "[Sign] Error")
 
 	// Verify Signature
 	pubKey, err := userApp.GetPublicKeySECP256K1(path)
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
-	}
-
-	if err != nil {
-		t.Fatalf("[GetPK] Error: %s", err.Error())
-		return
-	}
+	require.NoError(t, err, "[GetPK] Error")
 
 	pub2, err := btcec.ParsePubKey(pubKey[:])
-	if err != nil {
-		t.Fatalf("[ParsePK] Error: %s", err.Error())
-		return
-	}
+	require.NoError(t, err, "[ParsePK] Error")
 
 	sig2, err := ecdsa.ParseDERSignature(signature[:])
-	if err != nil {
-		t.Fatalf("[ParseSig] Error: %s", err.Error())
-		return
-	}
+	require.NoError(t, err, "[ParseSig] Error")
 
 	hash := sha256.Sum256(message)
 	verified := sig2.Verify(hash[:], pub2)
-	if !verified {
-		t.Fatalf("[VerifySig] Error verifying signature: %s", err.Error())
-		return
-	}
+	assert.True(t, verified, "[VerifySig] Error verifying signature")
 }
 
 func Test_UserSign_Fails(t *testing.T) {
-	userApp, err := FindLedgerCosmosUserApp()
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
+	userApp := setupUserApp(t)
 	defer userApp.Close()
 
 	path := []uint32{44, 118, 0, 0, 5}
@@ -256,11 +202,82 @@ func Test_UserSign_Fails(t *testing.T) {
 	garbage := []byte{65}
 	message = append(garbage, message...)
 
-	_, err = userApp.SignSECP256K1(path, message, 0)
-	assert.Error(t, err)
+	_, err := userApp.SignSECP256K1(path, message, 0)
+	assert.Error(t, err, "Expected error when signing invalid message")
 	errMessage := err.Error()
 
-	if errMessage != "Invalid character in JSON string" && errMessage != "Unexpected characters" {
-		assert.Fail(t, "Unexpected error message returned: "+errMessage)
-	}
+	expectedErrors := []string{"Invalid character in JSON string", "Unexpected characters"}
+	assert.Contains(t, expectedErrors, errMessage, "Unexpected error message returned: "+errMessage)
 }
+
+// func Test_PathGeneration0v2(t *testing.T) {
+// 	bip32Path := []uint32{44, 100, 0, 0, 0}
+
+// 	pathBytes, err := GetBip32bytesv2(bip32Path, 0)
+
+// 	if err != nil {
+// 		t.Fatalf("Detected error, err: %s\n", err.Error())
+// 	}
+
+// 	fmt.Printf("Path: %x\n", pathBytes)
+
+// 	assert.Equal(
+// 		t,
+// 		40,
+// 		len(pathBytes),
+// 		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 40)
+
+// 	assert.Equal(
+// 		t,
+// 		"2c000000640000000000000000000000000000000000000000000000000000000000000000000000",
+// 		fmt.Sprintf("%x", pathBytes),
+// 		"Unexpected PathBytes\n")
+// }
+
+// func Test_PathGeneration2v2(t *testing.T) {
+// 	bip32Path := []uint32{44, 118, 0, 0, 0}
+
+// 	pathBytes, err := GetBip32bytesv2(bip32Path, 2)
+
+// 	if err != nil {
+// 		t.Fatalf("Detected error, err: %s\n", err.Error())
+// 	}
+
+// 	fmt.Printf("Path: %x\n", pathBytes)
+
+// 	assert.Equal(
+// 		t,
+// 		40,
+// 		len(pathBytes),
+// 		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 40)
+
+// 	assert.Equal(
+// 		t,
+// 		"2c000080760000800000000000000000000000000000000000000000000000000000000000000000",
+// 		fmt.Sprintf("%x", pathBytes),
+// 		"Unexpected PathBytes\n")
+// }
+
+// func Test_PathGeneration3v2(t *testing.T) {
+// 	bip32Path := []uint32{44, 118, 0, 0, 0}
+
+// 	pathBytes, err := GetBip32bytesv2(bip32Path, 3)
+
+// 	if err != nil {
+// 		t.Fatalf("Detected error, err: %s\n", err.Error())
+// 	}
+
+// 	fmt.Printf("Path: %x\n", pathBytes)
+
+// 	assert.Equal(
+// 		t,
+// 		40,
+// 		len(pathBytes),
+// 		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 40)
+
+// 	assert.Equal(
+// 		t,
+// 		"2c000080760000800000008000000000000000000000000000000000000000000000000000000000",
+// 		fmt.Sprintf("%x", pathBytes),
+// 		"Unexpected PathBytes\n")
+// }
