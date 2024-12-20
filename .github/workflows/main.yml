@@ -28,7 +28,7 @@ jobs:
         run: |
           go test common.go -mod=readonly -timeout 5m -short -race -coverprofile=coverage.txt -covermode=atomic
           go test common.go -mod=readonly -timeout 5m
-      - uses: codecov/codecov-action@v5.0.7
+      - uses: codecov/codecov-action@v5.1.2
         with:
           file: ./coverage.txt
           fail_ci_if_error: true
