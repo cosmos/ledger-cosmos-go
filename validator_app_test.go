@@ -57,7 +57,6 @@ func Test_ValGetPublicKey(t *testing.T) {
 			len(pubKey),
 			"Public key has wrong length: %x, expected length: %x\n", pubKey, 32)
 	}
-
 }
 
 func Test_ValSignED25519(t *testing.T) {
