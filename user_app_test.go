@@ -190,9 +190,9 @@ func getDummyTx() []byte {
 		"msgs": ["SOMETHING"],
 		"sequence": 3
 	}`
-	dummyTx = strings.Replace(dummyTx, " ", "", -1)
-	dummyTx = strings.Replace(dummyTx, "\n", "", -1)
-	dummyTx = strings.Replace(dummyTx, "\t", "", -1)
+	dummyTx = strings.ReplaceAll(dummyTx, " ", "")
+	dummyTx = strings.ReplaceAll(dummyTx, "\n", "")
+	dummyTx = strings.ReplaceAll(dummyTx, "\t", "")
 
 	return []byte(dummyTx)
 }

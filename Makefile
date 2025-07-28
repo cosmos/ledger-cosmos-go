@@ -48,6 +48,10 @@ lint:
 	golangci-lint --version
 	golangci-lint run
 
+lint-fix:
+	golangci-lint --version
+	golangci-lint run --fix
+
 test:
 	@go test common.go -mod=readonly -timeout 5m -short -race -coverprofile=coverage.txt -covermode=atomic
 	@go test common.go -mod=readonly -timeout 5m
