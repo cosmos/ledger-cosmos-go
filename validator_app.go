@@ -84,7 +84,6 @@ func (ledger *LedgerTendermintValidator) Close() error {
 func (ledger *LedgerTendermintValidator) GetVersion() (*VersionInfo, error) {
 	message := []byte{validatorCLA, validatorINSGetVersion, 0, 0, 0}
 	response, err := ledger.api.Exchange(message)
-
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +111,6 @@ func (ledger *LedgerTendermintValidator) GetPublicKeyED25519(bip32Path []uint32)
 	message := append(header, pathBytes...)
 
 	response, err := ledger.api.Exchange(message)
-
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +125,7 @@ func (ledger *LedgerTendermintValidator) GetPublicKeyED25519(bip32Path []uint32)
 // SignSECP256K1 signs a message/vote using the Tendermint validator app
 func (ledger *LedgerTendermintValidator) SignED25519(bip32Path []uint32, message []byte) ([]byte, error) {
 	var packetIndex byte = 1
-	var packetCount = 1 + byte(math.Ceil(float64(len(message))/float64(validatorMessageChunkSize)))
+	packetCount := 1 + byte(math.Ceil(float64(len(message))/float64(validatorMessageChunkSize)))
 
 	var finalResponse []byte
 
@@ -145,7 +143,8 @@ func (ledger *LedgerTendermintValidator) SignED25519(bip32Path []uint32, message
 				validatorINSSignED25519,
 				packetIndex,
 				packetCount,
-				byte(len(pathBytes))}
+				byte(len(pathBytes)),
+			}
 
 			apduMessage = append(header, pathBytes...)
 		} else {
@@ -157,7 +156,8 @@ func (ledger *LedgerTendermintValidator) SignED25519(bip32Path []uint32, message
 				validatorINSSignED25519,
 				packetIndex,
 				packetCount,
-				byte(chunk)}
+				byte(chunk),
+			}
 
 			apduMessage = append(header, message[:chunk]...)
 		}
