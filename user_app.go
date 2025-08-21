@@ -19,7 +19,6 @@ package ledger_cosmos_go
 import (
 	"errors"
 	"fmt"
-	"math"
 
 	ledger_go "github.com/zondax/ledger-go"
 )
@@ -30,8 +29,6 @@ const (
 	userINSGetVersion       = 0
 	userINSSignSECP256K1    = 2
 	userINSGetAddrSecp256k1 = 4
-
-	userMessageChunkSize = 250
 )
 
 // LedgerCosmos represents a connection to the Cosmos app in a Ledger Nano S device
@@ -168,124 +165,79 @@ func (ledger *LedgerCosmos) GetBip32bytes(bip32Path []uint32, hardenCount int) (
 	return pathBytes, nil
 }
 
-func (ledger *LedgerCosmos) signv1(bip32Path []uint32, transaction []byte) ([]byte, error) {
-	var packetIndex byte = 1
-	packetCount := 1 + byte(math.Ceil(float64(len(transaction))/float64(userMessageChunkSize)))
+// cosmosErrorHandler provides custom error handling for Cosmos app
+func cosmosErrorHandler(err error, response []byte, instruction byte) error {
+	if err.Error() == "[APDU_CODE_BAD_KEY_HANDLE] The parameters in the data field are incorrect" {
+		// In this special case, we can extract additional info
+		errorMsg := string(response)
+		switch errorMsg {
+		case "ERROR: JSMN_ERROR_NOMEM":
+			return errors.New("Not enough tokens were provided")
+		case "PARSER ERROR: JSMN_ERROR_INVAL":
+			return errors.New("Unexpected character in JSON string")
+		case "PARSER ERROR: JSMN_ERROR_PART":
+			return errors.New("The JSON string is not a complete.")
+		}
+		return errors.New(errorMsg)
+	}
+	if err.Error() == "[APDU_CODE_DATA_INVALID] Referenced data reversibly blocked (invalidated)" {
+		errorMsg := string(response)
+		return errors.New(errorMsg)
+	}
+	return err
+}
 
+func (ledger *LedgerCosmos) signv1(bip32Path []uint32, transaction []byte) ([]byte, error) {
+	// Get path bytes
+	pathBytes, err := ledger.GetBip32bytes(bip32Path, 3)
+	if err != nil {
+		return nil, err
+	}
+
+	// Prepare chunks using ledger-go chunking
+	chunks := ledger_go.PrepareChunks(pathBytes, transaction)
+
+	// For v1, we need to handle the packet indexing differently
+	// v1 uses 1-based packet indexing in P1 and packet count in P2
+	packetCount := byte(len(chunks))
 	var finalResponse []byte
 
-	var message []byte
+	for packetIndex, chunk := range chunks {
+		// v1 uses 1-based indexing
+		p1 := byte(packetIndex + 1)
+		p2 := packetCount
+		payloadLen := byte(len(chunk))
 
-	for packetIndex <= packetCount {
-		chunk := userMessageChunkSize
-		if packetIndex == 1 {
-			pathBytes, err := ledger.GetBip32bytes(bip32Path, 3)
-			if err != nil {
-				return nil, err
-			}
-			header := []byte{userCLA, userINSSignSECP256K1, packetIndex, packetCount, byte(len(pathBytes))}
-			message = append(header, pathBytes...)
-		} else {
-			if len(transaction) < userMessageChunkSize {
-				chunk = len(transaction)
-			}
-			header := []byte{userCLA, userINSSignSECP256K1, packetIndex, packetCount, byte(chunk)}
-			message = append(header, transaction[:chunk]...)
-		}
+		header := []byte{userCLA, userINSSignSECP256K1, p1, p2, payloadLen}
+		message := append(header, chunk...)
 
 		response, err := ledger.api.Exchange(message)
 		if err != nil {
-			if err.Error() == "[APDU_CODE_BAD_KEY_HANDLE] The parameters in the data field are incorrect" {
-				// In this special case, we can extract additional info
-				errorMsg := string(response)
-				switch errorMsg {
-				case "ERROR: JSMN_ERROR_NOMEM":
-					return nil, errors.New("Not enough tokens were provided")
-				case "PARSER ERROR: JSMN_ERROR_INVAL":
-					return nil, errors.New("Unexpected character in JSON string")
-				case "PARSER ERROR: JSMN_ERROR_PART":
-					return nil, errors.New("The JSON string is not a complete.")
-				}
-				return nil, errors.New(errorMsg)
-			}
-			return nil, err
+			return nil, cosmosErrorHandler(err, response, userINSSignSECP256K1)
 		}
 
 		finalResponse = response
-		if packetIndex > 1 {
-			transaction = transaction[chunk:]
-		}
-		packetIndex++
-
 	}
+
 	return finalResponse, nil
 }
 
 func (ledger *LedgerCosmos) signv2(bip32Path []uint32, transaction []byte, p2 byte) ([]byte, error) {
-	var packetIndex byte = 1
-	packetCount := 1 + byte(math.Ceil(float64(len(transaction))/float64(userMessageChunkSize)))
-
-	var finalResponse []byte
-
-	var message []byte
-
 	if p2 > 1 {
 		return nil, errors.New("only values of SIGN_MODE_LEGACY_AMINO (P2=0) and SIGN_MODE_TEXTUAL (P2=1) are allowed")
 	}
 
-	for packetIndex <= packetCount {
-		chunk := userMessageChunkSize
-		if packetIndex == 1 {
-			pathBytes, err := ledger.GetBip32bytes(bip32Path, 3)
-			if err != nil {
-				return nil, err
-			}
-			header := []byte{userCLA, userINSSignSECP256K1, 0, p2, byte(len(pathBytes))}
-			message = append(header, pathBytes...)
-		} else {
-			if len(transaction) < userMessageChunkSize {
-				chunk = len(transaction)
-			}
-
-			payloadDesc := byte(1)
-			if packetIndex == packetCount {
-				payloadDesc = byte(2)
-			}
-
-			header := []byte{userCLA, userINSSignSECP256K1, payloadDesc, p2, byte(chunk)}
-			message = append(header, transaction[:chunk]...)
-		}
-
-		response, err := ledger.api.Exchange(message)
-		if err != nil {
-			if err.Error() == "[APDU_CODE_BAD_KEY_HANDLE] The parameters in the data field are incorrect" {
-				// In this special case, we can extract additional info
-				errorMsg := string(response)
-				switch errorMsg {
-				case "ERROR: JSMN_ERROR_NOMEM":
-					return nil, errors.New("Not enough tokens were provided")
-				case "PARSER ERROR: JSMN_ERROR_INVAL":
-					return nil, errors.New("Unexpected character in JSON string")
-				case "PARSER ERROR: JSMN_ERROR_PART":
-					return nil, errors.New("The JSON string is not a complete.")
-				}
-				return nil, errors.New(errorMsg)
-			}
-			if err.Error() == "[APDU_CODE_DATA_INVALID] Referenced data reversibly blocked (invalidated)" {
-				errorMsg := string(response)
-				return nil, errors.New(errorMsg)
-			}
-			return nil, err
-		}
-
-		finalResponse = response
-		if packetIndex > 1 {
-			transaction = transaction[chunk:]
-		}
-		packetIndex++
-
+	// Get path bytes
+	pathBytes, err := ledger.GetBip32bytes(bip32Path, 3)
+	if err != nil {
+		return nil, err
 	}
-	return finalResponse, nil
+
+	// Prepare chunks using ledger-go chunking
+	chunks := ledger_go.PrepareChunks(pathBytes, transaction)
+
+	// Use ProcessChunks with custom error handler
+	return ledger_go.ProcessChunks(ledger.api, chunks, userCLA, userINSSignSECP256K1, p2, cosmosErrorHandler)
 }
 
 // GetAddressPubKeySECP256K1 returns the pubkey (compressed) and address (bech(
