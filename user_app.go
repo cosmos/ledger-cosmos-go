@@ -85,7 +85,7 @@ func (ledger *LedgerCosmos) CheckVersion(ver VersionInfo) error {
 	case 2:
 		return CheckVersion(ver, VersionInfo{0, 2, 1, 0})
 	default:
-		return fmt.Errorf("app version %d is not supported", major)
+		return fmt.Errorf("App version %d is not supported", major)
 	}
 }
 
@@ -121,7 +121,7 @@ func (ledger *LedgerCosmos) SignSECP256K1(bip32Path []uint32, transaction []byte
 	case 2:
 		return ledger.signv2(bip32Path, transaction, p2)
 	default:
-		return nil, fmt.Errorf("app version %d is not supported", major)
+		return nil, fmt.Errorf("App version %d is not supported", major)
 	}
 }
 
@@ -159,7 +159,7 @@ func (ledger *LedgerCosmos) GetBip32bytes(bip32Path []uint32, hardenCount int) (
 			return nil, err
 		}
 	default:
-		return nil, fmt.Errorf("app version %d is not supported", major)
+		return nil, fmt.Errorf("App version %d is not supported", major)
 	}
 
 	return pathBytes, nil
@@ -172,11 +172,11 @@ func cosmosErrorHandler(err error, response []byte, instruction byte) error {
 		errorMsg := string(response)
 		switch errorMsg {
 		case "ERROR: JSMN_ERROR_NOMEM":
-			return errors.New("not enough tokens were provided")
+			return errors.New("Not enough tokens were provided")
 		case "PARSER ERROR: JSMN_ERROR_INVAL":
-			return errors.New("unexpected character in JSON string")
+			return errors.New("Unexpected character in JSON string")
 		case "PARSER ERROR: JSMN_ERROR_PART":
-			return errors.New("the JSON string is not complete")
+			return errors.New("The JSON string is not a complete.")
 		}
 		return errors.New(errorMsg)
 	}
@@ -276,7 +276,7 @@ func (ledger *LedgerCosmos) getAddressPubKeySECP256K1(bip32Path []uint32, hrp st
 		return nil, "", err
 	}
 	if len(response) < 35+len(hrp) {
-		return nil, "", errors.New("invalid response")
+		return nil, "", errors.New("Invalid response")
 	}
 
 	pubkey = response[0:33]
