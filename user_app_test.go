@@ -20,7 +20,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/btcsuite/btcd/btcec/v2"
@@ -54,8 +53,8 @@ func Test_UserGetVersion(t *testing.T) {
 
 	assert.Equal(t, uint8(0x0), version.AppMode, "TESTING MODE ENABLED!!")
 	assert.Equal(t, uint8(0x2), version.Major, "Wrong Major version")
-	assert.Equal(t, uint8(0x25), version.Minor, "Wrong Minor version")
-	assert.Equal(t, uint8(0x6), version.Patch, "Wrong Patch version")
+	assert.Equal(t, uint8(0x26), version.Minor, "Wrong Minor version")
+	assert.Equal(t, uint8(0x4), version.Patch, "Wrong Patch version")
 }
 
 func Test_UserGetPublicKey(t *testing.T) {
@@ -179,21 +178,8 @@ func Test_UserPK_HDPaths(t *testing.T) {
 }
 
 func getDummyTx() []byte {
-	dummyTx := `{
-		"account_number": 1,
-		"chain_id": "some_chain",
-		"fee": {
-			"amount": [{"amount": 10, "denom": "DEN"}],
-			"gas": 5
-		},
-		"memo": "MEMO",
-		"msgs": ["SOMETHING"],
-		"sequence": 3
-	}`
-	dummyTx = strings.ReplaceAll(dummyTx, " ", "")
-	dummyTx = strings.ReplaceAll(dummyTx, "\n", "")
-	dummyTx = strings.ReplaceAll(dummyTx, "\t", "")
-
+	// Transaction format from ledger-cosmos tests_zemu/tests/common.ts (example_tx_str_basic)
+	dummyTx := `{"account_number":"108","chain_id":"cosmoshub-4","fee":{"amount":[{"amount":"600","denom":"uatom"}],"gas":"200000"},"memo":"","msgs":[{"type":"cosmos-sdk/MsgWithdrawDelegationReward","value":{"delegator_address":"cosmos1w34k53py5v5xyluazqpq65agyajavep2rflq6h","validator_address":"cosmosvaloper1kn3wugetjuy4zetlq6wadchfhvu3x740ae6z6x"}},{"type":"cosmos-sdk/MsgWithdrawDelegationReward","value":{"delegator_address":"cosmos1w34k53py5v5xyluazqpq65agyajavep2rflq6h","validator_address":"cosmosvaloper1sjllsnramtg3ewxqwwrwjxfgc4n4ef9u2lcnj0"}}],"sequence":"106"}`
 	return []byte(dummyTx)
 }
 

@@ -72,24 +72,7 @@ func CheckVersion(ver VersionInfo, req VersionInfo) error {
 	return NewVersionRequiredError(req, ver)
 }
 
-func GetBip32bytesv1(bip32Path []uint32, hardenCount int) ([]byte, error) {
-	message := make([]byte, 41)
-	if len(bip32Path) > 10 {
-		return nil, fmt.Errorf("maximum bip32 depth = 10")
-	}
-	message[0] = byte(len(bip32Path))
-	for index, element := range bip32Path {
-		pos := 1 + index*4
-		value := element
-		if index < hardenCount {
-			value = 0x80000000 | element
-		}
-		binary.LittleEndian.PutUint32(message[pos:], value)
-	}
-	return message, nil
-}
-
-func GetBip32bytesv2(bip44Path []uint32, hardenCount int) ([]byte, error) {
+func GetBip32bytes(bip44Path []uint32, hardenCount int) ([]byte, error) {
 	message := make([]byte, 20)
 	if len(bip44Path) != 5 {
 		return nil, fmt.Errorf("path should contain 5 elements")

@@ -18,7 +18,6 @@ package ledger_cosmos_go
 
 import (
 	"errors"
-	"fmt"
 
 	ledger_go "github.com/zondax/ledger-go"
 )
@@ -72,21 +71,9 @@ func (ledger *LedgerCosmos) Close() error {
 	return ledger.api.Close()
 }
 
-// VersionIsSupported returns true if the App version is supported by this library
+// CheckVersion returns true if the App version is supported by this library
 func (ledger *LedgerCosmos) CheckVersion(ver VersionInfo) error {
-	version, err := ledger.GetVersion()
-	if err != nil {
-		return err
-	}
-
-	switch major := version.Major; major {
-	case 1:
-		return CheckVersion(ver, VersionInfo{0, 1, 5, 1})
-	case 2:
-		return CheckVersion(ver, VersionInfo{0, 2, 1, 0})
-	default:
-		return fmt.Errorf("App version %d is not supported", major)
-	}
+	return CheckVersion(ver, VersionInfo{0, 2, 1, 0})
 }
 
 // GetVersion returns the current version of the Cosmos user app
@@ -115,14 +102,21 @@ func (ledger *LedgerCosmos) GetVersion() (*VersionInfo, error) {
 // SIGN_MODE_LEGACY_AMINO_JSON (P2=0) or SIGN_MODE_TEXTUAL (P2=1).
 // this command requires user confirmation in the device
 func (ledger *LedgerCosmos) SignSECP256K1(bip32Path []uint32, transaction []byte, p2 byte) ([]byte, error) {
-	switch major := ledger.version.Major; major {
-	case 1:
-		return ledger.signv1(bip32Path, transaction)
-	case 2:
-		return ledger.signv2(bip32Path, transaction, p2)
-	default:
-		return nil, fmt.Errorf("App version %d is not supported", major)
+	if p2 > 1 {
+		return nil, errors.New("only values of SIGN_MODE_LEGACY_AMINO (P2=0) and SIGN_MODE_TEXTUAL (P2=1) are allowed")
 	}
+
+	// Get path bytes
+	pathBytes, err := GetBip32bytes(bip32Path, 3)
+	if err != nil {
+		return nil, err
+	}
+
+	// Prepare chunks using ledger-go chunking
+	chunks := ledger_go.PrepareChunks(pathBytes, transaction)
+
+	// Use ProcessChunks with custom error handler
+	return ledger_go.ProcessChunks(ledger.api, chunks, userCLA, userINSSignSECP256K1, p2, cosmosErrorHandler)
 }
 
 // GetPublicKeySECP256K1 retrieves the public key for the corresponding bip32 derivation path (compressed)
@@ -143,27 +137,6 @@ func (ledger *LedgerCosmos) GetAddressPubKeySECP256K1(bip32Path []uint32, hrp st
 	return ledger.getAddressPubKeySECP256K1(bip32Path, hrp, true)
 }
 
-func (ledger *LedgerCosmos) GetBip32bytes(bip32Path []uint32, hardenCount int) ([]byte, error) {
-	var pathBytes []byte
-	var err error
-
-	switch major := ledger.version.Major; major {
-	case 1:
-		pathBytes, err = GetBip32bytesv1(bip32Path, 3)
-		if err != nil {
-			return nil, err
-		}
-	case 2:
-		pathBytes, err = GetBip32bytesv2(bip32Path, 3)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, fmt.Errorf("App version %d is not supported", major)
-	}
-
-	return pathBytes, nil
-}
 
 // cosmosErrorHandler provides custom error handling for Cosmos app
 func cosmosErrorHandler(err error, response []byte, instruction byte) error {
@@ -178,69 +151,22 @@ func cosmosErrorHandler(err error, response []byte, instruction byte) error {
 		case "PARSER ERROR: JSMN_ERROR_PART":
 			return errors.New("The JSON string is not a complete.")
 		}
-		return errors.New(errorMsg)
+		if errorMsg != "" {
+			return errors.New(errorMsg)
+		}
+		return err
 	}
 	if err.Error() == "[APDU_CODE_DATA_INVALID] Referenced data reversibly blocked (invalidated)" {
 		errorMsg := string(response)
-		return errors.New(errorMsg)
+		if errorMsg != "" {
+			return errors.New(errorMsg)
+		}
+		return err
 	}
 	return err
 }
 
-func (ledger *LedgerCosmos) signv1(bip32Path []uint32, transaction []byte) ([]byte, error) {
-	// Get path bytes
-	pathBytes, err := ledger.GetBip32bytes(bip32Path, 3)
-	if err != nil {
-		return nil, err
-	}
-
-	// Prepare chunks using ledger-go chunking
-	chunks := ledger_go.PrepareChunks(pathBytes, transaction)
-
-	// For v1, we need to handle the packet indexing differently
-	// v1 uses 1-based packet indexing in P1 and packet count in P2
-	packetCount := byte(len(chunks))
-	var finalResponse []byte
-
-	for packetIndex, chunk := range chunks {
-		// v1 uses 1-based indexing
-		p1 := byte(packetIndex + 1)
-		p2 := packetCount
-		payloadLen := byte(len(chunk))
-
-		header := []byte{userCLA, userINSSignSECP256K1, p1, p2, payloadLen}
-		message := append(header, chunk...)
-
-		response, err := ledger.api.Exchange(message)
-		if err != nil {
-			return nil, cosmosErrorHandler(err, response, userINSSignSECP256K1)
-		}
-
-		finalResponse = response
-	}
-
-	return finalResponse, nil
-}
-
-func (ledger *LedgerCosmos) signv2(bip32Path []uint32, transaction []byte, p2 byte) ([]byte, error) {
-	if p2 > 1 {
-		return nil, errors.New("only values of SIGN_MODE_LEGACY_AMINO (P2=0) and SIGN_MODE_TEXTUAL (P2=1) are allowed")
-	}
-
-	// Get path bytes
-	pathBytes, err := ledger.GetBip32bytes(bip32Path, 3)
-	if err != nil {
-		return nil, err
-	}
-
-	// Prepare chunks using ledger-go chunking
-	chunks := ledger_go.PrepareChunks(pathBytes, transaction)
-
-	// Use ProcessChunks with custom error handler
-	return ledger_go.ProcessChunks(ledger.api, chunks, userCLA, userINSSignSECP256K1, p2, cosmosErrorHandler)
-}
-
-// GetAddressPubKeySECP256K1 returns the pubkey (compressed) and address (bech(
+// getAddressPubKeySECP256K1 returns the pubkey (compressed) and address (bech32)
 // this command requires user confirmation in the device
 func (ledger *LedgerCosmos) getAddressPubKeySECP256K1(bip32Path []uint32, hrp string, requireConfirmation bool) (pubkey []byte, addr string, err error) {
 	if len(hrp) > 83 {
@@ -254,7 +180,7 @@ func (ledger *LedgerCosmos) getAddressPubKeySECP256K1(bip32Path []uint32, hrp st
 		}
 	}
 
-	pathBytes, err := ledger.GetBip32bytes(bip32Path, 3)
+	pathBytes, err := GetBip32bytes(bip32Path, 3)
 	if err != nil {
 		return nil, "", err
 	}
