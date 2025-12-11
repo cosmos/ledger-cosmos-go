@@ -17,83 +17,151 @@
 package ledger_cosmos_go
 
 import (
-	"fmt"
+	"encoding/hex"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func Test_PrintVersion(t *testing.T) {
-	reqVersion := VersionInfo{0, 1, 2, 3}
-	s := fmt.Sprintf("%v", reqVersion)
-	assert.Equal(t, "1.2.3", s)
+func TestVersionInfo_String(t *testing.T) {
+	version := VersionInfo{AppMode: 0, Major: 1, Minor: 2, Patch: 3}
+	assert.Equal(t, "1.2.3", version.String())
 }
 
-func Test_PathGeneration0(t *testing.T) {
-	bip32Path := []uint32{44, 100, 0, 0, 0}
-
-	pathBytes, err := GetBip32bytes(bip32Path, 0)
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
+func TestCheckVersion(t *testing.T) {
+	tests := []struct {
+		name     string
+		current  VersionInfo
+		required VersionInfo
+		wantErr  bool
+	}{
+		{
+			name:     "exact match",
+			current:  VersionInfo{Major: 2, Minor: 1, Patch: 0},
+			required: VersionInfo{Major: 2, Minor: 1, Patch: 0},
+			wantErr:  false,
+		},
+		{
+			name:     "higher major version",
+			current:  VersionInfo{Major: 3, Minor: 0, Patch: 0},
+			required: VersionInfo{Major: 2, Minor: 1, Patch: 0},
+			wantErr:  false,
+		},
+		{
+			name:     "higher minor version",
+			current:  VersionInfo{Major: 2, Minor: 2, Patch: 0},
+			required: VersionInfo{Major: 2, Minor: 1, Patch: 0},
+			wantErr:  false,
+		},
+		{
+			name:     "higher patch version",
+			current:  VersionInfo{Major: 2, Minor: 1, Patch: 5},
+			required: VersionInfo{Major: 2, Minor: 1, Patch: 0},
+			wantErr:  false,
+		},
+		{
+			name:     "lower major version",
+			current:  VersionInfo{Major: 1, Minor: 5, Patch: 0},
+			required: VersionInfo{Major: 2, Minor: 1, Patch: 0},
+			wantErr:  true,
+		},
+		{
+			name:     "lower minor version",
+			current:  VersionInfo{Major: 2, Minor: 0, Patch: 5},
+			required: VersionInfo{Major: 2, Minor: 1, Patch: 0},
+			wantErr:  true,
+		},
+		{
+			name:     "lower patch version",
+			current:  VersionInfo{Major: 2, Minor: 1, Patch: 0},
+			required: VersionInfo{Major: 2, Minor: 1, Patch: 5},
+			wantErr:  true,
+		},
 	}
 
-	fmt.Printf("Path: %x\n", pathBytes)
-
-	assert.Equal(
-		t,
-		20,
-		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 20)
-
-	assert.Equal(
-		t,
-		"2c00000064000000000000000000000000000000",
-		fmt.Sprintf("%x", pathBytes),
-		"Unexpected PathBytes\n")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := CheckVersion(tt.current, tt.required)
+			if tt.wantErr {
+				assert.Error(t, err)
+				var versionErr *VersionRequiredError
+				assert.ErrorAs(t, err, &versionErr)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
 
-func Test_PathGeneration2(t *testing.T) {
-	bip32Path := []uint32{44, 118, 0, 0, 0}
-
-	pathBytes, err := GetBip32bytes(bip32Path, 2)
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
+func TestGetBip32bytes(t *testing.T) {
+	tests := []struct {
+		name        string
+		path        []uint32
+		hardenCount int
+		wantHex     string
+		wantErr     error
+	}{
+		{
+			name:        "no hardened elements",
+			path:        []uint32{44, 100, 0, 0, 0},
+			hardenCount: 0,
+			wantHex:     "2c00000064000000000000000000000000000000",
+			wantErr:     nil,
+		},
+		{
+			name:        "two hardened elements",
+			path:        []uint32{44, 118, 0, 0, 0},
+			hardenCount: 2,
+			wantHex:     "2c00008076000080000000000000000000000000",
+			wantErr:     nil,
+		},
+		{
+			name:        "three hardened elements (standard cosmos)",
+			path:        []uint32{44, 118, 0, 0, 0},
+			hardenCount: 3,
+			wantHex:     "2c00008076000080000000800000000000000000",
+			wantErr:     nil,
+		},
+		{
+			name:        "invalid path length - too short",
+			path:        []uint32{44, 118, 0, 0},
+			hardenCount: 3,
+			wantHex:     "",
+			wantErr:     ErrInvalidPathLength,
+		},
+		{
+			name:        "invalid path length - too long",
+			path:        []uint32{44, 118, 0, 0, 0, 0},
+			hardenCount: 3,
+			wantHex:     "",
+			wantErr:     ErrInvalidPathLength,
+		},
 	}
 
-	fmt.Printf("Path: %x\n", pathBytes)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := GetBip32bytes(tt.path, tt.hardenCount)
 
-	assert.Equal(
-		t,
-		20,
-		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 20)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
 
-	assert.Equal(
-		t,
-		"2c00008076000080000000000000000000000000",
-		fmt.Sprintf("%x", pathBytes),
-		"Unexpected PathBytes\n")
+			require.NoError(t, err)
+			assert.Equal(t, 20, len(result), "path bytes should be 20 bytes")
+			assert.Equal(t, tt.wantHex, hex.EncodeToString(result))
+		})
+	}
 }
 
-func Test_PathGeneration3(t *testing.T) {
-	bip32Path := []uint32{44, 118, 0, 0, 0}
+func TestVersionRequiredError(t *testing.T) {
+	err := NewVersionRequiredError(
+		VersionInfo{Major: 2, Minor: 1, Patch: 0},
+		VersionInfo{Major: 1, Minor: 5, Patch: 0},
+	)
 
-	pathBytes, err := GetBip32bytes(bip32Path, 3)
-	if err != nil {
-		t.Fatalf("Detected error, err: %s\n", err.Error())
-	}
-
-	fmt.Printf("Path: %x\n", pathBytes)
-
-	assert.Equal(
-		t,
-		20,
-		len(pathBytes),
-		"PathBytes has wrong length: %x, expected length: %x\n", pathBytes, 20)
-
-	assert.Equal(
-		t,
-		"2c00008076000080000000800000000000000000",
-		fmt.Sprintf("%x", pathBytes),
-		"Unexpected PathBytes\n")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "2.1.0")
+	assert.Contains(t, err.Error(), "1.5.0")
 }
