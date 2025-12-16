@@ -1,9 +1,9 @@
 module github.com/cosmos/ledger-cosmos-go
 
-go 1.21
+go 1.22
 
 require (
-	github.com/btcsuite/btcd/btcec/v2 v2.3.4
+	github.com/btcsuite/btcd/btcec/v2 v2.3.6
 	github.com/stretchr/testify v1.10.0
 	github.com/zondax/ledger-go v1.0.0
 )
