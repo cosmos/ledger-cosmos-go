@@ -84,7 +84,7 @@ func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 
 	appVersion, err := app.GetVersion()
 	if err != nil {
-		ledgerAPI.Close()
+		_ = ledgerAPI.Close()
 		// Check if the error indicates the Cosmos app is not open
 		// Using string contains for robustness against minor message variations
 		if strings.Contains(err.Error(), "CLA_NOT_SUPPORTED") {
@@ -94,7 +94,7 @@ func FindLedgerCosmosUserApp() (*LedgerCosmos, error) {
 	}
 
 	if err := app.CheckVersion(*appVersion); err != nil {
-		ledgerAPI.Close()
+		_ = ledgerAPI.Close()
 		return nil, err
 	}
 
