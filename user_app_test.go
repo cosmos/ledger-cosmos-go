@@ -68,14 +68,14 @@ func connectToLedger(t *testing.T) *LedgerCosmos {
 
 func TestFindLedgerCosmosUserApp(t *testing.T) {
 	userApp := connectToLedger(t)
-	defer userApp.Close()
+	defer func() { _ = userApp.Close() }()
 
 	assert.NotNil(t, userApp)
 }
 
 func TestGetVersion(t *testing.T) {
 	userApp := connectToLedger(t)
-	defer userApp.Close()
+	defer func() { _ = userApp.Close() }()
 
 	version, err := userApp.GetVersion()
 	require.NoError(t, err)
@@ -90,7 +90,7 @@ func TestGetVersion(t *testing.T) {
 
 func TestGetPublicKeySECP256K1(t *testing.T) {
 	userApp := connectToLedger(t)
-	defer userApp.Close()
+	defer func() { _ = userApp.Close() }()
 
 	pubKey, err := userApp.GetPublicKeySECP256K1(customPath)
 	require.NoError(t, err)
@@ -106,7 +106,7 @@ func TestGetPublicKeySECP256K1(t *testing.T) {
 
 func TestGetAddressPubKeySECP256K1_StandardPath(t *testing.T) {
 	userApp := connectToLedger(t)
-	defer userApp.Close()
+	defer func() { _ = userApp.Close() }()
 
 	pubKey, addr, err := userApp.GetAddressPubKeySECP256K1(standardPath, "cosmos")
 	require.NoError(t, err)
@@ -124,7 +124,7 @@ func TestGetAddressPubKeySECP256K1_StandardPath(t *testing.T) {
 
 func TestGetAddressPubKeySECP256K1_CustomPath(t *testing.T) {
 	userApp := connectToLedger(t)
-	defer userApp.Close()
+	defer func() { _ = userApp.Close() }()
 
 	pubKey, addr, err := userApp.GetAddressPubKeySECP256K1(customPath, "cosmos")
 	require.NoError(t, err)
@@ -142,7 +142,7 @@ func TestGetAddressPubKeySECP256K1_CustomPath(t *testing.T) {
 
 func TestGetPublicKeySECP256K1_HDPaths(t *testing.T) {
 	userApp := connectToLedger(t)
-	defer userApp.Close()
+	defer func() { _ = userApp.Close() }()
 
 	path := []uint32{44, 118, 0, 0, 0}
 
@@ -164,7 +164,7 @@ func TestGetPublicKeySECP256K1_HDPaths(t *testing.T) {
 
 func TestSignSECP256K1(t *testing.T) {
 	userApp := connectToLedger(t)
-	defer userApp.Close()
+	defer func() { _ = userApp.Close() }()
 
 	message := getTestTransaction()
 
@@ -191,7 +191,7 @@ func TestSignSECP256K1(t *testing.T) {
 
 func TestSignSECP256K1_InvalidTransaction(t *testing.T) {
 	userApp := connectToLedger(t)
-	defer userApp.Close()
+	defer func() { _ = userApp.Close() }()
 
 	// Prepend garbage to create invalid JSON
 	message := append([]byte{65}, getTestTransaction()...)

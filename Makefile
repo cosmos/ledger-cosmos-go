@@ -38,7 +38,7 @@ gitclean:
 	git submodule foreach --recursive git clean -xfd
 
 install_lint:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin latest
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v2.5.0
 
 check-modtidy:
 	@go mod tidy

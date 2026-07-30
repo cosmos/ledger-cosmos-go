@@ -1,10 +1,10 @@
 module github.com/cosmos/ledger-cosmos-go
 
-go 1.23.0
+go 1.25
 
 require (
-	github.com/btcsuite/btcd/btcec/v2 v2.3.5
-	github.com/stretchr/testify v1.10.0
+	github.com/btcsuite/btcd/btcec/v2 v2.5.0
+	github.com/stretchr/testify v1.11.1
 	github.com/zondax/ledger-go v1.0.1
 )
 
